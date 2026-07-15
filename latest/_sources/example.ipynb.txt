@@ -1,0 +1,174 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "f7811804-deda-448f-b996-9d01918a8e95",
+   "metadata": {},
+   "source": [
+    "# Using Walnuts from Python\n",
+    "\n",
+    "This notebook will show to how run the same model (a simple standard normal)\n",
+    "implemented in Python, Numba (a just-in-time compiler package), and Stan."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "41e1691c-eb0c-4fa6-9cd4-4dbda65cb73c",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import walnutpie\n",
+    "\n",
+    "def summarize(name, fit):\n",
+    "    summarizer = walnutpie.Summarizer(fit)\n",
+    "    mean = summarizer.mean()\n",
+    "    std = summarizer.standard_deviation()\n",
+    "    ess = summarizer.ess()\n",
+    "    r_hat = summarizer.r_hat()\n",
+    "    draws = summarizer._stacked.shape[0]\n",
+    "    print(f\"{name}\\tdim\\tmean\\tstd\\tess\\trhat\\tdraws\")\n",
+    "    for i in range(len(mean)):\n",
+    "        print(\n",
+    "            f\"\\t{i}\\t{mean[i]:.4f}\\t{std[i]:.4f}\\t{ess[i]:.2f}\\t{r_hat[i]:.4f}\\t{draws}\"\n",
+    "        )\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2675b9f2-3083-458f-8c5e-52c2447dc835",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import bridgestan\n",
+    "\n",
+    "stan_code = os.path.join(\n",
+    "    bridgestan.compile.get_bridgestan_path(), \"test_models/multi/multi.stan\"\n",
+    ")\n",
+    "with open(stan_code, 'r') as f:\n",
+    "    print(f.read())\n",
+    "\n",
+    "m = bridgestan.StanModel(\n",
+    "    stan_code,\n",
+    "    {\"M\": 2, \"N\": 0, \"P\": 0},\n",
+    "    make_args=[\"STAN_THREADS=1\"],\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dba1daaf-a56e-447a-879a-53d3e5ae3935",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%time\n",
+    "summarize(\"stan\", walnutpie.walnuts_stan(m, seed=1234))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c5a029f1-9701-4c4a-9284-5ddf010561ca",
+   "metadata": {},
+   "source": [
+    "## Python\n",
+    "Defining a pure-python log density is simple and highly flexible, but will usually be slower than the other options due to the extra overhead of the Python language"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "d255a305-70c0-438c-9004-a5922820109e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import scipy.stats\n",
+    "\n",
+    "\n",
+    "def logp(x):\n",
+    "    return np.sum(scipy.stats.norm.logpdf(x)), -x"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ddaf8324-8c03-4560-8040-d7e8e4ab0e92",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%time\n",
+    "summarize(\"pyfunc\", walnutpie.walnuts_pyfunc(logp, num_params=2))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c374dc1f-714b-4225-976a-b7657a38c02e",
+   "metadata": {},
+   "source": [
+    "## Numba\n",
+    "\n",
+    "If we are willing to use [`numba`](https://numba.pydata.org/), we can get much faster!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "eb9c308e-28d2-4f8e-b878-d9747ab47cc6",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numba\n",
+    "from numba import types\n",
+    "from numba_stats import norm\n",
+    "\n",
+    "\n",
+    "@numba.cfunc(\n",
+    "    types.intc(\n",
+    "        types.size_t,\n",
+    "        types.CPointer(types.double),\n",
+    "        types.CPointer(types.double),\n",
+    "        types.CPointer(types.double),\n",
+    "        types.voidptr,\n",
+    "    ),\n",
+    "    nopython=True,\n",
+    ")\n",
+    "def logp_numba(size, x_, grad_, lp, _):\n",
+    "    x = numba.carray(x_, size)\n",
+    "    lp[0] = norm.logpdf(x, 0.0, 1.0).sum()\n",
+    "    grad = numba.carray(grad_, size)\n",
+    "    grad[:] = -x\n",
+    "    return 0"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "45d9ef8c-0cb6-4b1e-9672-170fdc2f5489",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%%time\n",
+    "summarize(\"numba\", walnutpie.walnuts_pyfunc(logp_numba, num_params=2))"
+   ]
+  }
+ ],
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

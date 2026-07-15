@@ -1,0 +1,1722 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>C++ API &#8212; Walnutpie  documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'cpp';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Using Walnuts from Python" href="example.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Walnutpie  documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="py.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example.html">
+    Using Walnuts from Python
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    C++ API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flatironinstitute/walnutpie" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="install.html">
+    Installation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="py.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="example.html">
+    Using Walnuts from Python
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    C++ API
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/flatironinstitute/walnutpie" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fab fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">C++ API</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="c-api">
+<h1>C++ API<a class="headerlink" href="#c-api" title="Link to this heading">#</a></h1>
+<section id="sampling-functionality">
+<h2>Sampling functionality<a class="headerlink" href="#sampling-functionality" title="Link to this heading">#</a></h2>
+<section id="top-level-call">
+<h3>Top-level call<a class="headerlink" href="#top-level-call" title="Link to this heading">#</a></h3>
+<p>This function will spawn threads to perform end-to-end sampling</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uniform_random_bit_generator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RNG</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie12ChainHandlerE" title="walnutpie::ChainHandler"><span class="n"><span class="pre">ChainHandler</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie13GlobalHandlerE" title="walnutpie::GlobalHandler"><span class="n"><span class="pre">GlobalHandler</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GH</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie17InterruptCallbackE" title="walnutpie::InterruptCallback"><span class="n"><span class="pre">InterruptCallback</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">IC</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie8LogpGradE" title="walnutpie::LogpGrad"><span class="n"><span class="pre">LogpGrad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">F</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="api_8hpp_1a2b7923a5388d5c87e077971f5a2cdccb"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">walnutpie</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">walnuts</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">seed</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig" title="walnutpie::walnuts::H"><span class="n"><span class="pre">H</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">chain_handlers</span></span>, <a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig" title="walnutpie::walnuts::GH"><span class="n"><span class="pre">GH</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">global_handler</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig" title="walnutpie::walnuts::IC"><span class="n"><span class="pre">IC</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">interrupt_callback</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig" title="walnutpie::walnuts::F"><span class="n"><span class="pre">F</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">log_p_grad</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie13WalnutsConfigE" title="walnutpie::WalnutsConfig"><span class="n"><span class="pre">WalnutsConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">config</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the chain records from running Walnuts with the specified seed, sampling event handlers, and configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Handler</strong> – The type of the event handlers. </p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>seed</strong> – <strong>[in]</strong> The seed for the pseudo-random number generator. </p></li>
+<li><p><strong>chain_handlers</strong> – <strong>[in]</strong> The collection of chain-specific handlers, which are called back. </p></li>
+<li><p><strong>global_handler</strong> – <strong>[in]</strong> The handler for global cross-chain events. </p></li>
+<li><p><strong>interrupt_callback</strong> – <strong>[in]</strong> The callback for stopping. </p></li>
+<li><p><strong>log_p_grad</strong> – <strong>[in]</strong> The log density and gradient function, called back. </p></li>
+<li><p><strong>config</strong> – <strong>[in]</strong> The configuration for Walnutpie. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Throws<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the number of handlers doesn’t match the initialization configuration’s number of chains. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="iterator-style-samplers">
+<h3>Iterator-style samplers<a class="headerlink" href="#iterator-style-samplers" title="Link to this heading">#</a></h3>
+<p>These classes implement Walnuts in an iteration-per-call style iterator.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN9walnutpie8LogpGradE" title="walnutpie::LogpGrad"><span class="n"><span class="pre">LogpGrad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">F</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uniform_random_bit_generator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RNG</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie13SampleHandlerE" title="walnutpie::SampleHandler"><span class="n"><span class="pre">SampleHandler</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classwalnutpie_1_1_walnuts_sampler"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WalnutsSampler</span></span></span><a class="headerlink" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The Walnuts Markov chain Monte Carlo (MCMC) sampler. </p>
+<p>The sampler is constructed with a base random number generator, a log density and gradient function, an initialization, and several tuning parameters. It provides a no-argument functor for generating the next element of the Markov chain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>F</strong> – The type of the log density and gradient function. </p></li>
+<li><p><strong>RNG</strong> – The type of the base random number generator. </p></li>
+<li><p><strong>Handler</strong> – The type of the sampling event handler. </p></li>
+</ul>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerER3RNGR1HRK1FRKN5Eigen8VectorXdERKN5Eigen8VectorXdEdNSt6size_tENSt6size_tENSt6size_tEd">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1ace4804e4d934e8bacc6df82344177c78"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WalnutsSampler</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE" title="walnutpie::WalnutsSampler::RNG"><span class="n"><span class="pre">RNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rng</span></span>, <a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE" title="walnutpie::WalnutsSampler::H"><span class="n"><span class="pre">H</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sample_handler</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE" title="walnutpie::WalnutsSampler::F"><span class="n"><span class="pre">F</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">logp_grad</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">theta</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">inv_mass</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">macro_time</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_nuts_depth</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_step_halvings</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">min_micro_steps</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_error</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerER3RNGR1HRK1FRKN5Eigen8VectorXdERKN5Eigen8VectorXdEdNSt6size_tENSt6size_tENSt6size_tEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Construct a Walnuts sampler from the specified RNG, target log density/gradient initialization, and tuning parameters. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rng</strong> – <strong>[inout]</strong> The base random number generator. </p></li>
+<li><p><strong>sample_handler</strong> – <strong>[inout]</strong> The sampling and on-stop event handler. </p></li>
+<li><p><strong>logp_grad</strong> – <strong>[in]</strong> The target log density and gradient function (see the class documentation. </p></li>
+<li><p><strong>theta</strong> – <strong>[in]</strong> The initial position. </p></li>
+<li><p><strong>inv_mass</strong> – <strong>[in]</strong> The diagonal of the diagonal inverse mass matrix. </p></li>
+<li><p><strong>macro_time</strong> – <strong>[in]</strong> The macro time discretization interval. </p></li>
+<li><p><strong>max_nuts_depth</strong> – <strong>[in]</strong> The maximum number of trajectory doublings for Nuts. </p></li>
+<li><p><strong>max_step_halvings</strong> – <strong>[in]</strong> The maximum number of times the step size is halved. </p></li>
+<li><p><strong>min_micro_steps</strong> – <strong>[in]</strong> The minimum number of micro steps per macro step. </p></li>
+<li><p><strong>max_error</strong> – <strong>[in]</strong> The log of the maximum error in joint densities allowed in Hamiltonian trajectories. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">inv_mass_matrix</span></code> has non-positive or infinite entries. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">macro_time</span></code> is not positive or not finite. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">max_nuts_depth</span></code> is not positive. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">max_step_halvings</span></code> is not positive. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">min_micro_steps</span></code> is not positive. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">max_error</span></code> is not positive or not finite. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERK14WalnutsSampler">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1a16b81a6c8a8711a4e232dfacb621422b"></span><span class="sig-name descname"><span class="n"><span class="pre">WalnutsSampler</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERK14WalnutsSampler" title="walnutpie::WalnutsSampler::WalnutsSampler"><span class="n"><span class="pre">WalnutsSampler</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sampler</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERK14WalnutsSampler" title="Link to this definition">#</a><br /></dt>
+<dd><p>Construct a sampler by copying the specified sampler. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sampler</strong> – <strong>[in]</strong> Sampler to copy. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERR14WalnutsSampler">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1a412b6ee465cd58bc645b4358436c91c7"></span><span class="sig-name descname"><span class="n"><span class="pre">WalnutsSampler</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERR14WalnutsSampler" title="walnutpie::WalnutsSampler::WalnutsSampler"><span class="n"><span class="pre">WalnutsSampler</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sampler</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">default</span></span><a class="headerlink" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERR14WalnutsSampler" title="Link to this definition">#</a><br /></dt>
+<dd><p>Construct a sampler by moving the specified sampler. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sampler</strong> – <strong>[in]</strong> Sampler to move. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie14WalnutsSamplerclEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1a30d123c4f1c59de5a9a7777cc5ae093d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie14WalnutsSamplerclEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Generate the next draw and send it to the handler and return its log density. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The unnormalized log density of the next draw. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie14WalnutsSampler28inverse_mass_matrix_diagonalEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1ad30618c7a24d73192fb4d55d6dcd82f9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">inverse_mass_matrix_diagonal</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie14WalnutsSampler28inverse_mass_matrix_diagonalEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return a constant reference the diagonal of the diagonal inverse mass matrix. </p>
+<p>The value of the inverse mass matrix will change on subsequent calls to <code class="docutils literal notranslate"><span class="pre">operator()(S&amp;)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The diagonal of the inverse mass matrix. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie14WalnutsSampler10macro_timeEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1a94375485c7495131972f239e0eb5e980"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">macro_time</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie14WalnutsSampler10macro_timeEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the macro time discretization interval for Nuts. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The time discretization interval for Nuts. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie14WalnutsSampler9max_errorEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1a9fabacb6830e5312825eba7ce94c03f5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">max_error</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie14WalnutsSampler9max_errorEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the maximum error allowed among Hamiltonians. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The maximum error allowed among Hamiltonians. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie14WalnutsSampler3dimEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_sampler_1a0375cd8ad36a47f1225bf314481d13d6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dim</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie14WalnutsSampler3dimEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the number of dimensions. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of dimensions. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN9walnutpie8LogpGradE" title="walnutpie::LogpGrad"><span class="n"><span class="pre">LogpGrad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">F</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uniform_random_bit_generator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RNG</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie12ChainHandlerE" title="walnutpie::ChainHandler"><span class="n"><span class="pre">ChainHandler</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classwalnutpie_1_1_adaptive_walnuts"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AdaptiveWalnuts</span></span></span><a class="headerlink" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The adaptive Walnuts sampler. </p>
+<p>The adaptive Walnuts sampler is configured in the constructor, then provides a functor method <code class="docutils literal notranslate"><span class="pre">operator()()</span></code> for returning the next state in warmup. Warmup re-estimates step size and mass matrix each iteration, exponentially discounting the past.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>F</strong> – Type of log density/gradient function. </p></li>
+<li><p><strong>RNG</strong> – Type of base random number generator. </p></li>
+<li><p><strong>Handler</strong> – Type of adaptation and sampling event handler. </p></li>
+</ul>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie15AdaptiveWalnuts15AdaptiveWalnutsER3RNGR1HRK1FRK15InitChainConfigRK12WarmupConfigRK14SamplingConfig">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a8512ed070cad1accbc73a93787d45d13"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">AdaptiveWalnuts</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="walnutpie::AdaptiveWalnuts::RNG"><span class="n"><span class="pre">RNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rng</span></span>, <a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="walnutpie::AdaptiveWalnuts::H"><span class="n"><span class="pre">H</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">handler</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="walnutpie::AdaptiveWalnuts::F"><span class="n"><span class="pre">F</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">logp_grad</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">InitChainConfig</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">init_chain_cfg</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie12WarmupConfigE" title="walnutpie::WarmupConfig"><span class="n"><span class="pre">WarmupConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">warmup_cfg</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie14SamplingConfigE" title="walnutpie::SamplingConfig"><span class="n"><span class="pre">SamplingConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">sampling_cfg</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie15AdaptiveWalnuts15AdaptiveWalnutsER3RNGR1HRK1FRK15InitChainConfigRK12WarmupConfigRK14SamplingConfig" title="Link to this definition">#</a><br /></dt>
+<dd><p>Construct an adaptive Walnuts sampler. </p>
+<p>The configuration objects, the base random number generator, and the log density/gradient function are held by reference. The RNG changes state every time a random number is generated. The target depth specifies the expected Nuts tree depth, which is controlled through the minimum number of micro steps per macro step and adjusted with a mean estimator to achieve this average.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rng</strong> – <strong>[in]</strong> The base random number generator, stored by reference and modifed. </p></li>
+<li><p><strong>handler</strong> – <strong>[inout]</strong> Event handler for adaptation and sampling, stored by reference and called back. </p></li>
+<li><p><strong>logp_grad</strong> – <strong>[in]</strong> The target log density and gradient function. </p></li>
+<li><p><strong>init_chain_cfg</strong> – <strong>[in]</strong> The initialization configuration for a single chain. </p></li>
+<li><p><strong>warmup_cfg</strong> – <strong>[in]</strong> The warmup configuration. </p></li>
+<li><p><strong>sampling_cfg</strong> – <strong>[in]</strong> The sampling configuration. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie15AdaptiveWalnutsclEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1ad3f275a9f1f8a9bb43439ad06d82fc11"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="k"><span class="pre">operator</span></span><span class="o"><span class="pre">()</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie15AdaptiveWalnutsclEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Generate the next state for adaptation and the handler. </p>
+<p>This method should be called a number of time equal to the number of warmup iterations desired. These warmup draws are <em>not</em> drawn from a Markov chain and are not valid for inference. After warmup, call <code class="docutils literal notranslate"><span class="pre">sampler()</span></code> to return a sampler that fixes the tuning parameters and provides a proper Markov chain. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie15AdaptiveWalnuts7samplerEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a7ec3899e013bcaf8b1379559851b3cb8"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE" title="walnutpie::WalnutsSampler"><span class="n"><span class="pre">WalnutsSampler</span></span></a><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="walnutpie::AdaptiveWalnuts::F"><span class="n"><span class="pre">F</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="walnutpie::AdaptiveWalnuts::RNG"><span class="n"><span class="pre">RNG</span></span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE" title="walnutpie::AdaptiveWalnuts::H"><span class="n"><span class="pre">H</span></span></a><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">sampler</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie15AdaptiveWalnuts7samplerEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return a Walnuts sampler with the current tuning parameter estimates. </p>
+<p>The returned sampler forms a proper Markov chain. The method passes along the compound random number generator and log density function and is hence not marked <code class="docutils literal notranslate"><span class="pre">const</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Walnuts sampler with current tuning parameter estimates. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts8inv_massEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1af5955619f34280089cc45c6ab5736da6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">inv_mass</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts8inv_massEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the diagonal of the diagonal inverse mass matrix. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The diagonal of the inverse mass matrix. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts9step_sizeEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1aef94e2cca7a5386a03e451900a304dd6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">step_size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts9step_sizeEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the step size. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The step size. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts15min_micro_stepsEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a74a1a7e5c9b826e0f4c74e1504977d80"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">min_micro_steps</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts15min_micro_stepsEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the minimum number of micro steps per macro step. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The minimum number of micro steps per macro step. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts3dimEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a5f6d7ebe1126750da5ffd19b49719d62"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">dim</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts3dimEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the number of dimensions of the position. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The number of dimensions. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts13log_step_sizeEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a9316cd8852301d21449db775a5a8f5f1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">log_step_size</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts13log_step_sizeEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the natural logarithm of the step size. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The log of the step size. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts8log_massEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a913c22d6548ede76d6e915611b8c3a5f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">log_mass</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts8log_massEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the natural logarithm of the diagonal of the diagonal mass matirx. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The log of the diagonal of the mass matrix. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie15AdaptiveWalnuts4iterEv">
+<span class="target" id="classwalnutpie_1_1_adaptive_walnuts_1a102f50eae9e23a94491c2815926b62d4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">iter</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts4iterEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the current iteration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The iteration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">#</a></h2>
+<p>The following classes (and their builders) are used to configure Walnuts.</p>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie13WalnutsConfigE">
+<span class="target" id="classwalnutpie_1_1_walnuts_config"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WalnutsConfig</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie13WalnutsConfigE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Encapsulated configuration for Walnutpie. </p>
+<p>Walnuts configurations include initialization, warmup, and sampling configurations. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie13WalnutsConfig13WalnutsConfigE10InitConfig12WarmupConfig14SamplingConfig">
+<span class="target" id="classwalnutpie_1_1_walnuts_config_1aed0ea71d55a275d1166801d442efd52d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WalnutsConfig</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4N9walnutpie10InitConfigE" title="walnutpie::InitConfig"><span class="n"><span class="pre">InitConfig</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">init</span></span>, <a class="reference internal" href="#_CPPv4N9walnutpie12WarmupConfigE" title="walnutpie::WarmupConfig"><span class="n"><span class="pre">WarmupConfig</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">warmup</span></span>, <a class="reference internal" href="#_CPPv4N9walnutpie14SamplingConfigE" title="walnutpie::SamplingConfig"><span class="n"><span class="pre">SamplingConfig</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">sampling</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie13WalnutsConfig13WalnutsConfigE10InitConfig12WarmupConfig14SamplingConfig" title="Link to this definition">#</a><br /></dt>
+<dd><p>Construct a Walnuts configuration given the component configurations. </p>
+<p>The arguments will be moved if they are rvalues and copied if lvalues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>init</strong> – <strong>[in]</strong> The initialization configuration. </p></li>
+<li><p><strong>warmup</strong> – <strong>[in]</strong> The warmup configuration. </p></li>
+<li><p><strong>sampling</strong> – <strong>[in]</strong> The sampling configuration. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie13WalnutsConfig4initEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_config_1a2c58ee2f62a370b7adc272c686e482f3"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie10InitConfigE" title="walnutpie::InitConfig"><span class="n"><span class="pre">InitConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">init</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie13WalnutsConfig4initEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the initialization configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The initialization configuration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie13WalnutsConfig6warmupEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_config_1a2cb7a0e0994ecdcc3241c2d921330585"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie12WarmupConfigE" title="walnutpie::WarmupConfig"><span class="n"><span class="pre">WarmupConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">warmup</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie13WalnutsConfig6warmupEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the warmup configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The warmup configuration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4NK9walnutpie13WalnutsConfig8samplingEv">
+<span class="target" id="classwalnutpie_1_1_walnuts_config_1a10a9b87029780cc276bfa9d1fb86f709"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie14SamplingConfigE" title="walnutpie::SamplingConfig"><span class="n"><span class="pre">SamplingConfig</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">sampling</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4NK9walnutpie13WalnutsConfig8samplingEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the sampling configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The sampling configuration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilderE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitConfigBuilder</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The builder for initialization configurations. </p>
+<p>The usage to return an <code class="docutils literal notranslate"><a class="reference internal" href="#classwalnutpie_1_1_init_config"><span class="std std-ref"><span class="pre">InitConfig</span></span></a></code> is <code class="docutils literal notranslate"><span class="pre">InitConfigBuilder(4,</span> <span class="pre">20).step_sizes(0.5).</span><a class="reference internal" href="#classwalnutpie_1_1_init_config_builder_1ac6506d8d017a88ecbd54b11d5c77e948"><span class="std std-ref"><span class="pre">build()</span></span></a><span class="pre">;</span></code> with any number of config methods chained between the construction and call to build. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder17InitConfigBuilderENSt6size_tENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1ab15a7f73e7c2da94c71f601dd44c52df"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitConfigBuilder</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">num_chains</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">dims</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder17InitConfigBuilderENSt6size_tENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Construct an initialization builder of the given sizes. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_chains</strong> – <strong>[in]</strong> The number of Markov chains. </p></li>
+<li><p><strong>dims</strong> – <strong>[in]</strong> The dimensionality of each chain. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder10step_sizesEd">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1a90a74eb7de251c35ede7f7f4e786d5d5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_sizes</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder10step_sizesEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the step sizes to all be the specified value. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The step size. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the step size is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder10step_sizesERKNSt6vectorIdEE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1acd7bbacceec5410cb595be2dc11b5552"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_sizes</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">double</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder10step_sizesERKNSt6vectorIdEE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the step sizes to all be the specified values. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The step sizes. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the step sizes are not finite positive. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the number of chains doesn’t match the number specified in the constructor. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt28uniform_random_bit_generatorEEN9walnutpie17InitConfigBuilder9positionsER17InitConfigBuilderR3RNGd">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uniform_random_bit_generator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RNG</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classwalnutpie_1_1_init_config_builder_1ac7e8d8baa443fc2262de87f426bccd5e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">positions</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorEEN9walnutpie17InitConfigBuilder9positionsER17InitConfigBuilderR3RNGd" title="walnutpie::InitConfigBuilder::positions::RNG"><span class="n"><span class="pre">RNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rng</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">init_scale</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_NSt28uniform_random_bit_generatorEEN9walnutpie17InitConfigBuilder9positionsER17InitConfigBuilderR3RNGd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Randomly initialization the positions. </p>
+<p>Initialization is independent in each dimension with values drawn from a zero-centered normal distribution with the specified scale.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RNG</strong> – The type of the base random number generator. </p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rng</strong> – <strong>[inout]</strong> The base random number generator. </p></li>
+<li><p><strong>init_scale</strong> – <strong>[in]</strong> The scale of the normal initial values. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Throws<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the initial scale is not finite and positive. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder9positionsERKN5Eigen8VectorXdE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1a58414b90b6c65cb07cbe01cca139c2c6"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">positions</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder9positionsERKN5Eigen8VectorXdE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the positions all to the same value. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The initial position. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the dimensionality doesn’t match that specified during construction. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the initial positions contains non-finite values. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder9positionsERKNSt6vectorIN5Eigen8VectorXdEEE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1ab60c61da48995282d3b72a2a945fcec0"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">positions</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder9positionsERKNSt6vectorIN5Eigen8VectorXdEEE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the positions to the specified values. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vs</strong> – <strong>[in]</strong> The initial positions. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the number of initial positions doesn’t match the number of chains specified in the constructor. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the initial positions contains non-finite values. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argumet</span></span></span> – If any of the initial positions has a dimensionality that does not match the dimensionality specified in the constructor. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder9positionsERRNSt6vectorIN5Eigen8VectorXdEEE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1a12213447f89e382b84614475f06fc80d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">positions</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder9positionsERRNSt6vectorIN5Eigen8VectorXdEEE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the positions to the specified values via move. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vs</strong> – <strong>[in]</strong> The initial positions. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the number of initial positions doesn’t match the number of chains specified in the constructor. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the initial positions contains non-finite values. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argumet</span></span></span> – If any of the initial positions has a dimensionality that does not match the dimensionality specified in the constructor. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_8LogpGradEN9walnutpie17InitConfigBuilder6massesER17InitConfigBuilderRK1Fdb">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I0EN9walnutpie8LogpGradE" title="walnutpie::LogpGrad"><span class="n"><span class="pre">LogpGrad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">F</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classwalnutpie_1_1_init_config_builder_1a04b72771d3d2b46aecda34f2684a390a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">masses</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_8LogpGradEN9walnutpie17InitConfigBuilder6massesER17InitConfigBuilderRK1Fdb" title="walnutpie::InitConfigBuilder::masses::F"><span class="n"><span class="pre">F</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">logp_grad</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">mass_smoothing</span></span>, <span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">average_masses</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_8LogpGradEN9walnutpie17InitConfigBuilder6massesER17InitConfigBuilderRK1Fdb" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the masses using the Nutpie outer product strategy. </p>
+<p>Following Nutpie, the initialization uses a smoothed negative outer product of gradient, which is the absolute value of the outer product of gradients linearly interpolated with a unit matrix with weight <code class="docutils literal notranslate"><span class="pre">mass_smoothing</span></code> on the unit matrix and <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">-</span> <span class="pre">mass_smoothing</span></code> on the regularized outer product.</p>
+<p>If the flag <code class="docutils literal notranslate"><span class="pre">average_masses</span></code> is <code class="docutils literal notranslate"><span class="pre">true</span></code>, then each chain’s mass matrix is set to the geometric average of the per-chain mass matrixes.</p>
+<p>See: Seyboldt, Adrian and Carlson, Eliot and Carpenter, Bob. 2026. [Preconditioning Hamiltonian Monte Carlo by minimizing Fisher divergence](<a class="reference external" href="https://arxiv.org/abs/2603.18845v1">https://arxiv.org/abs/2603.18845v1</a>). arXiv 2603.18845.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>LPG</strong> – The type of the log density and gradient function. </p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>logp_grad</strong> – <strong>[in]</strong> The log density and gradient function, called back. </p></li>
+<li><p><strong>mass_smoothing</strong> – <strong>[in]</strong> The additive smoothing for mass matrices. </p></li>
+<li><p><strong>average_masses</strong> – <strong>[in]</strong> Set to <code class="docutils literal notranslate"><span class="pre">true</span></code> to geometrically average mass matrices. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Throws<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argumet</span></span></span> – If the mass smoothing is not in (0, 1). </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder6massesERKN5Eigen8VectorXdE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1ac6145fc1b810171168f1c8f354f027bd"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">masses</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder6massesERKN5Eigen8VectorXdE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the mass matrices all to the same value. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The initial diagonal mass matrix. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the dimensionality doesn’t match that specified during construction. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the initial mass matrix diagonals contains non-finite or non-positive values. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder6massesERKNSt6vectorIN5Eigen8VectorXdEEE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1a83812bbf05ab21d8f178d8a0174706ad"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">masses</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder6massesERKNSt6vectorIN5Eigen8VectorXdEEE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the mass matrices to the specified values. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vs</strong> – <strong>[in]</strong> The initial mass matrices. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the number of initial mass matrices doesn’t match the number of chains specified in the constructor. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the initial mass matrices contains non-finite values. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argumet</span></span></span> – If any of the initial mass matrices has a dimensionality that does not match the dimensionality specified in the constructor. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder6massesERRNSt6vectorIN5Eigen8VectorXdEEE">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1a3966e9bdf7b6682f8c9d85292c98789e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie17InitConfigBuilderE" title="walnutpie::InitConfigBuilder"><span class="n"><span class="pre">InitConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">masses</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">Eigen</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">VectorXd</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vs</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder6massesERRNSt6vectorIN5Eigen8VectorXdEEE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Initialize the mass matrices to the specified values via move. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vs</strong> – <strong>[in]</strong> The initial mass matrices. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the number of initial mass matrices doesn’t match the number of chains specified in the constructor. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If any of the initial mass matrices contains non-finite values. </p></li>
+<li><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argumet</span></span></span> – If any of the initial mass matrices has a dimensionality that does not match the dimensionality specified in the constructor. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie17InitConfigBuilder5buildEv">
+<span class="target" id="classwalnutpie_1_1_init_config_builder_1ac6506d8d017a88ecbd54b11d5c77e948"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie10InitConfigE" title="walnutpie::InitConfig"><span class="n"><span class="pre">InitConfig</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">build</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie17InitConfigBuilder5buildEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the initialization configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The initialization configuration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_NSt28uniform_random_bit_generatorE_8LogpGradEN9walnutpie17InitConfigBuilder16adapt_step_buildE10InitConfigR3RNGRK1F">
+<span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">uniform_random_bit_generator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RNG</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I0EN9walnutpie8LogpGradE" title="walnutpie::LogpGrad"><span class="n"><span class="pre">LogpGrad</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">F</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="classwalnutpie_1_1_init_config_builder_1a410f4cc83c56a9ab04b7bf9b6e14ad1b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie10InitConfigE" title="walnutpie::InitConfig"><span class="n"><span class="pre">InitConfig</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">adapt_step_build</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_8LogpGradEN9walnutpie17InitConfigBuilder16adapt_step_buildE10InitConfigR3RNGRK1F" title="walnutpie::InitConfigBuilder::adapt_step_build::RNG"><span class="n"><span class="pre">RNG</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">rng</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_8LogpGradEN9walnutpie17InitConfigBuilder16adapt_step_buildE10InitConfigR3RNGRK1F" title="walnutpie::InitConfigBuilder::adapt_step_build::F"><span class="n"><span class="pre">F</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">logp_grad</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_8LogpGradEN9walnutpie17InitConfigBuilder16adapt_step_buildE10InitConfigR3RNGRK1F" title="Link to this definition">#</a><br /></dt>
+<dd><p>Heuristically adapt the initial step sizes, then return the initialization configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>RNG</strong> – Type of the base random number generator. </p></li>
+<li><p><strong>F</strong> – Type of the log density and gradient function. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>rng</strong> – <strong>[in]</strong> The base random number generator. </p></li>
+<li><p><strong>logp_grad</strong> – <strong>[in]</strong> The log density and gradient function. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilderE">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The builder for <code class="docutils literal notranslate"><a class="reference internal" href="#classwalnutpie_1_1_warmup_config"><span class="std std-ref"><span class="pre">WarmupConfig</span></span></a></code> objects. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder12min_max_iterENSt6size_tENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1ad9e7311ab1d39fd97fe35748b05d1e94"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">min_max_iter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">min_iter</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_iter</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder12min_max_iterENSt6size_tENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the minimum and maximum number of warmup iterations. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_iter</strong> – <strong>[in]</strong> The minimum number of warmup iterations. </p></li>
+<li><p><strong>max_iter</strong> – <strong>[in]</strong> The maximum number of warmup iterations. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If <code class="docutils literal notranslate"><span class="pre">min_iter</span></code> &gt; <code class="docutils literal notranslate"><span class="pre">max_iter</span></code>. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder22step_size_converge_tolEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a20369952ee750b8d84bc3918c65380c9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_size_converge_tol</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder22step_size_converge_tolEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the step size convergence tolerance. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The step size convergence tolerance. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the tolerance is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder17mass_converge_tolEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1afdaedfbba242709030d862647a4cba9b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">mass_converge_tol</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder17mass_converge_tolEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the mass matrix L2-norm convergence tolerance. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The mass matrix L2-norm convergence tolerance. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the tolerance is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder15mass_init_countEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a2e2e8a130f4802f8624a2d5cc2f6c848"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">mass_init_count</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder15mass_init_countEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the mass matrix estimator initial count. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The mass matrix estimator initial count. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the initial count is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder23mass_additive_smoothingEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1ad1696cac6a2562b836fb1892a51aa725"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">mass_additive_smoothing</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder23mass_additive_smoothingEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the mass matrix estimator additive smoothing. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The mass matrix estimator additive smoothing. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the smoothing is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder22max_macro_steps_targetEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a48361055b371222560da9d2afaf3057b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">max_macro_steps_target</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder22max_macro_steps_targetEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the target number of macro steps. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The target number of macro steps. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the target is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder23step_accept_rate_targetEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a3294c474a0349131e0e598ee9eb32ad1"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_accept_rate_target</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder23step_accept_rate_targetEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the accept-rate target for step-size estimation. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The accept-rate target. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the accept rate is not in (0, 1). </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder18step_learning_rateEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a0dae94cc5e79355470745579ac7179a7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_learning_rate</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder18step_learning_rateEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the step size learning rate. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The step size learning rate. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the learning rate is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder19step_gradient_decayEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a843c2220550763edd677dfd20b914e0b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_gradient_decay</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder19step_gradient_decayEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the gradient decay for the step-size estimator. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The gradient decay for the step-size estimator. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the decay is not in (0, 1). </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder22step_sq_gradient_decayEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a11a77f212667a9c5d88b13e3f9f922ee"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_sq_gradient_decay</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder22step_sq_gradient_decayEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the squared gradient decay for the step-size estimator. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The squared gradient decay for the step-size estimator. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the decay is not in (0, 1). </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder18step_stabilizationEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a08942e7b5003cbf057f0a81d9bf21557"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_stabilization</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder18step_stabilizationEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the step-size estimator stabilization term. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The step-size estimator stabilization term. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the stabilization is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder21step_learn_rate_decayEd">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1aa31659238cbfe5a1099ec104f11df898"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">step_learn_rate_decay</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder21step_learn_rate_decayEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the learning rate decay exponent for step size. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The learning rate decay exponent. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the decay exponent is not in (0, 1). </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder14publish_strideENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a400356d28f418f5c72e73c7282faa1e9"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">publish_stride</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder14publish_strideENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the stride between publishing statistics for convergence monitoring. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The stride for publishing statistics for convergence monitoring. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the stride is not positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder12yield_periodENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1a2a028c44f264276a39ce15cd5315b963"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE" title="walnutpie::WarmupConfigBuilder"><span class="n"><span class="pre">WarmupConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">yield_period</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder12yield_periodENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the iteration period between chain threads yielding. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The iteration period between chain threads yielding. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the yield period is not positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>This builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie19WarmupConfigBuilder5buildEv">
+<span class="target" id="classwalnutpie_1_1_warmup_config_builder_1aedb8e8c2e23bf1d8bd493ed65d9556ff"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie12WarmupConfigE" title="walnutpie::WarmupConfig"><span class="n"><span class="pre">WarmupConfig</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">build</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie19WarmupConfigBuilder5buildEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the warmup configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The warmup configuration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilderE">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The builder for sampling configurations. </p>
+<p>An example use would be: <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SampleConfigBuilder</span><span class="p">(</span><span class="mi">50</span><span class="n">u</span><span class="p">,</span> <span class="mi">100</span><span class="n">u</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">max_step_halvings</span><span class="p">(</span><span class="mi">4</span><span class="n">u</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">min_micro_steps</span><span class="p">(</span><span class="mi">2</span><span class="n">u</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">build</span><span class="p">();</span>
+</pre></div>
+</div>
+</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder12min_max_iterENSt6size_tENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1aac454aa963d09bf1c00c62cea5ec1431"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="walnutpie::SamplingConfigBuilder"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">min_max_iter</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">min_iter</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">max_iter</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder12min_max_iterENSt6size_tENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the minimum and maximum number of iterations. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>min_iter</strong> – <strong>[in]</strong> The minimum number of iterations. </p></li>
+<li><p><strong>max_iter</strong> – <strong>[in]</strong> The maximum number of iterations. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the minimum number of iterations is greater than the maximum number of iterations. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder24max_trajectory_doublingsENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1a35da6e862033f3138e15b6f16ef51181"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="walnutpie::SamplingConfigBuilder"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">max_trajectory_doublings</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder24max_trajectory_doublingsENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the maximum number of trajectory doublings. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The maximum number of trajectory doublings. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder17max_step_halvingsENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1a361f27d7b57392033dca303f2401cdb2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="walnutpie::SamplingConfigBuilder"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">max_step_halvings</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">noexcept</span></span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder17max_step_halvingsENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the maximum number of step size halvings. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The maximum number of step size halvings. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder21max_hamiltonian_errorEd">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1a5cc2efa3009f9e409fd2cc849390214a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="walnutpie::SamplingConfigBuilder"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">max_hamiltonian_error</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder21max_hamiltonian_errorEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the maximum error in the Hamiltonian for Walnutpie. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The maximum error in the Hamiltonian for Walnutpie. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the error is not finite and positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder15min_micro_stepsENSt6size_tE">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1ae81ab160d0e9afb9fa990937db6a363d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="walnutpie::SamplingConfigBuilder"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">min_micro_steps</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder15min_micro_stepsENSt6size_tE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the minimum number of micro steps per macro step. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The minimum number of micro steps per macro step. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the minimum number of steps is not positive. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder17rhat_converge_tolEd">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1a59eecb4e20f70ab5ea03fb63f92726d5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE" title="walnutpie::SamplingConfigBuilder"><span class="n"><span class="pre">SamplingConfigBuilder</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="sig-name descname"><span class="n"><span class="pre">rhat_converge_tol</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">v</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder17rhat_converge_tolEd" title="Link to this definition">#</a><br /></dt>
+<dd><p>Set the R-hat convergence tolerance. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> – <strong>[in]</strong> The R-hat convergence tolerance. </p>
+</dd>
+<dt class="field-even">Throws<span class="colon">:</span></dt>
+<dd class="field-even"><p><span><span class="cpp-expr sig sig-inline cpp"><span class="n">std</span><span class="p">::</span><span class="n">invalid_argument</span></span></span> – If the tolerance is not finite and &gt; 1. </p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A reference to this builder for chaining. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie21SamplingConfigBuilder5buildEv">
+<span class="target" id="classwalnutpie_1_1_sampling_config_builder_1a8aeae11df5dbb63efc109e86a05a7934"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N9walnutpie14SamplingConfigE" title="walnutpie::SamplingConfig"><span class="n"><span class="pre">SamplingConfig</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">build</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9walnutpie21SamplingConfigBuilder5buildEv" title="Link to this definition">#</a><br /></dt>
+<dd><p>Return the sampling configuration. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The sampling configuration. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie10InitConfigE">
+<span class="target" id="classwalnutpie_1_1_init_config"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InitConfig</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie10InitConfigE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The initialization configuration for multiple Markov chains. </p>
+<p>Rather than a public constructor, it is built using an <code class="docutils literal notranslate"><a class="reference internal" href="#classwalnutpie_1_1_init_config_builder"><span class="std std-ref"><span class="pre">InitConfigBuilder</span></span></a></code> instance.</p>
+<p>The initialization configuration specifies a step size, initial position, and initial mass matrix. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie12WarmupConfigE">
+<span class="target" id="classwalnutpie_1_1_warmup_config"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">WarmupConfig</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie12WarmupConfigE" title="Link to this definition">#</a><br /></dt>
+<dd><p>The warmup configuration object. The object supplies methods for all of the tuning parameters for warmup. </p>
+</dd></dl>
+
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9walnutpie14SamplingConfigE">
+<span class="target" id="classwalnutpie_1_1_sampling_config"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SamplingConfig</span></span></span><a class="headerlink" href="#_CPPv4N9walnutpie14SamplingConfigE" title="Link to this definition">#</a><br /></dt>
+<dd><p>A class to hold the configuration for the Walnuts sampler. </p>
+</dd></dl>
+
+</section>
+<section id="concepts">
+<h2>Concepts<a class="headerlink" href="#concepts" title="Link to this heading">#</a></h2>
+<p>The following concepts describe the types expected by <cite>walnutpie</cite>.</p>
+<dl class="cpp concept">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9walnutpie8LogpGradE">
+<span class="target" id="conceptwalnutpie_1_1_logp_grad"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">F</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">LogpGrad</span></span></span><a class="headerlink" href="#_CPPv4I0EN9walnutpie8LogpGradE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Concept for a log density and gradient function. </p>
+<p>A type <code class="docutils literal notranslate"><span class="pre">F</span></code> satisfies <code class="docutils literal notranslate"><span class="pre">LogpGrad</span></code> if an object of type <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">F&amp;</span></code> can be called with arguments <code class="docutils literal notranslate"><span class="pre">(const</span> <span class="pre">Eigen::VectorXd&amp;,</span> <span class="pre">double&amp;,</span> <span class="pre">Eigen::VectorXd&amp;)</span></code> and the call returns <code class="docutils literal notranslate"><span class="pre">void</span></code>. The first argument is the position at which to evaluate, and the second and third are output parameters set to the log density and its gradient, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">tparam F<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The callable type to constrain. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp concept">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9walnutpie13ErrorCallbackE">
+<span class="target" id="conceptwalnutpie_1_1_error_callback"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ErrorCallback</span></span></span><a class="headerlink" href="#_CPPv4I0EN9walnutpie13ErrorCallbackE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Concept for handler for errors The following member is required. </p>
+<p><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">on_logp_exception(const</span> <span class="pre">Eigen::VectorXd&amp;,</span> <span class="pre">std::exception&amp;)</span></code> called when the log density function throws an error </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp concept">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9walnutpie13SampleHandlerE">
+<span class="target" id="conceptwalnutpie_1_1_sample_handler"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">SampleHandler</span></span></span><a class="headerlink" href="#_CPPv4I0EN9walnutpie13SampleHandlerE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Concept for a handler of sampling events. </p>
+<p>A type <code class="docutils literal notranslate"><span class="pre">H</span></code> satisfies <code class="docutils literal notranslate"><span class="pre">SampleHandler</span></code> if it satisfies <code class="docutils literal notranslate"><span class="pre">ErrorCallback</span></code> and additional provides the following member functions, each callable on a non-const instance and returning <code class="docutils literal notranslate"><span class="pre">void</span></code>:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">on_sample(const</span> <span class="pre">Eigen::VectorXd&amp;,</span> <span class="pre">double)</span></code> called once per draw with the position and log density. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp concept">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9walnutpie12ChainHandlerE">
+<span class="target" id="conceptwalnutpie_1_1_chain_handler"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">C</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ChainHandler</span></span></span><a class="headerlink" href="#_CPPv4I0EN9walnutpie12ChainHandlerE" title="Link to this definition">#</a><br /></dt>
+<dd><p>An extension of the <code class="docutils literal notranslate"><span class="pre">SampleHandler</span></code> concept for additionally handling warmup events. </p>
+<p>A type <code class="docutils literal notranslate"><span class="pre">C</span></code> satisfies <code class="docutils literal notranslate"><span class="pre">ChainHandler</span></code> if it provides the following member functions, each callable on a non-const instance and returning <code class="docutils literal notranslate"><span class="pre">void</span></code>:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">on_warmup(const</span> <span class="pre">Eigen::VectorXd&amp;,</span> <span class="pre">double,</span> <span class="pre">double,</span> <span class="pre">const</span> <span class="pre">Eigen::VectorXd&amp;)</span></code> called once per warmup draw with the position, log density, step size, and diagonal inverse mass matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">on_warmup_complete(double,</span> <span class="pre">const</span> <span class="pre">Eigen::VectorXd&amp;)</span></code> called once when warmup finishes, with the final step size and diagonal inverse mass matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">on_sample(const</span> <span class="pre">Eigen::VectorXd&amp;,</span> <span class="pre">double)</span></code> called once per post-warmup draw with the position and log density. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp concept">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9walnutpie13GlobalHandlerE">
+<span class="target" id="conceptwalnutpie_1_1_global_handler"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GlobalHandler</span></span></span><a class="headerlink" href="#_CPPv4I0EN9walnutpie13GlobalHandlerE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Concept for a handler of cross-chain events. </p>
+<p>This only handles R-hat updates now.</p>
+<p>A type <code class="docutils literal notranslate"><span class="pre">H</span></code> satisfies <code class="docutils literal notranslate"><span class="pre">Handler</span></code> if it provides:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">on_r_hat(double)</span></code> callable on a non-const instance, returning <code class="docutils literal notranslate"><span class="pre">void</span></code>, </p></li>
+</ul>
+</p>
+</dd></dl>
+
+<dl class="cpp concept">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN9walnutpie17InterruptCallbackE">
+<span class="target" id="conceptwalnutpie_1_1_interrupt_callback"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">H</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="k"><span class="pre">concept</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">InterruptCallback</span></span></span><a class="headerlink" href="#_CPPv4I0EN9walnutpie17InterruptCallbackE" title="Link to this definition">#</a><br /></dt>
+<dd><p>Concept for an interrupt callback. </p>
+<p>A type <code class="docutils literal notranslate"><span class="pre">H</span></code> satisfies <code class="docutils literal notranslate"><span class="pre">Handler</span></code> if it provides:<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">received_interrupt()</span></code> will return <code class="docutils literal notranslate"><span class="pre">true</span></code> if the process should be interrupted. </p></li>
+</ul>
+</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="example.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Using Walnuts from Python</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sampling-functionality">Sampling functionality</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#top-level-call">Top-level call</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_12ChainHandler_13GlobalHandler_17InterruptCallback_8LogpGradEN9walnutpie7walnutsEvNSt6size_tERNSt6vectorI1HEER2GHRK2ICRK1FRK13WalnutsConfig"><code class="docutils literal notranslate"><span class="pre">walnuts()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#iterator-style-samplers">Iterator-style samplers</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_13SampleHandlerEN9walnutpie14WalnutsSamplerE"><code class="docutils literal notranslate"><span class="pre">walnutpie::WalnutsSampler</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerER3RNGR1HRK1FRKN5Eigen8VectorXdERKN5Eigen8VectorXdEdNSt6size_tENSt6size_tENSt6size_tEd"><code class="docutils literal notranslate"><span class="pre">WalnutsSampler()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERK14WalnutsSampler"><code class="docutils literal notranslate"><span class="pre">WalnutsSampler()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie14WalnutsSampler14WalnutsSamplerERR14WalnutsSampler"><code class="docutils literal notranslate"><span class="pre">WalnutsSampler()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie14WalnutsSamplerclEv"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie14WalnutsSampler28inverse_mass_matrix_diagonalEv"><code class="docutils literal notranslate"><span class="pre">inverse_mass_matrix_diagonal()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie14WalnutsSampler10macro_timeEv"><code class="docutils literal notranslate"><span class="pre">macro_time()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie14WalnutsSampler9max_errorEv"><code class="docutils literal notranslate"><span class="pre">max_error()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie14WalnutsSampler3dimEv"><code class="docutils literal notranslate"><span class="pre">dim()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I_8LogpGrad_NSt28uniform_random_bit_generatorE_12ChainHandlerEN9walnutpie15AdaptiveWalnutsE"><code class="docutils literal notranslate"><span class="pre">walnutpie::AdaptiveWalnuts</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie15AdaptiveWalnuts15AdaptiveWalnutsER3RNGR1HRK1FRK15InitChainConfigRK12WarmupConfigRK14SamplingConfig"><code class="docutils literal notranslate"><span class="pre">AdaptiveWalnuts()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie15AdaptiveWalnutsclEv"><code class="docutils literal notranslate"><span class="pre">operator()()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie15AdaptiveWalnuts7samplerEv"><code class="docutils literal notranslate"><span class="pre">sampler()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts8inv_massEv"><code class="docutils literal notranslate"><span class="pre">inv_mass()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts9step_sizeEv"><code class="docutils literal notranslate"><span class="pre">step_size()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts15min_micro_stepsEv"><code class="docutils literal notranslate"><span class="pre">min_micro_steps()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts3dimEv"><code class="docutils literal notranslate"><span class="pre">dim()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts13log_step_sizeEv"><code class="docutils literal notranslate"><span class="pre">log_step_size()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts8log_massEv"><code class="docutils literal notranslate"><span class="pre">log_mass()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie15AdaptiveWalnuts4iterEv"><code class="docutils literal notranslate"><span class="pre">iter()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration">Configuration</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie13WalnutsConfigE"><code class="docutils literal notranslate"><span class="pre">walnutpie::WalnutsConfig</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie13WalnutsConfig13WalnutsConfigE10InitConfig12WarmupConfig14SamplingConfig"><code class="docutils literal notranslate"><span class="pre">WalnutsConfig()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie13WalnutsConfig4initEv"><code class="docutils literal notranslate"><span class="pre">init()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie13WalnutsConfig6warmupEv"><code class="docutils literal notranslate"><span class="pre">warmup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4NK9walnutpie13WalnutsConfig8samplingEv"><code class="docutils literal notranslate"><span class="pre">sampling()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilderE"><code class="docutils literal notranslate"><span class="pre">walnutpie::InitConfigBuilder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder17InitConfigBuilderENSt6size_tENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">InitConfigBuilder()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder10step_sizesEd"><code class="docutils literal notranslate"><span class="pre">step_sizes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder10step_sizesERKNSt6vectorIdEE"><code class="docutils literal notranslate"><span class="pre">step_sizes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I_NSt28uniform_random_bit_generatorEEN9walnutpie17InitConfigBuilder9positionsER17InitConfigBuilderR3RNGd"><code class="docutils literal notranslate"><span class="pre">positions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder9positionsERKN5Eigen8VectorXdE"><code class="docutils literal notranslate"><span class="pre">positions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder9positionsERKNSt6vectorIN5Eigen8VectorXdEEE"><code class="docutils literal notranslate"><span class="pre">positions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder9positionsERRNSt6vectorIN5Eigen8VectorXdEEE"><code class="docutils literal notranslate"><span class="pre">positions()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I_8LogpGradEN9walnutpie17InitConfigBuilder6massesER17InitConfigBuilderRK1Fdb"><code class="docutils literal notranslate"><span class="pre">masses()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder6massesERKN5Eigen8VectorXdE"><code class="docutils literal notranslate"><span class="pre">masses()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder6massesERKNSt6vectorIN5Eigen8VectorXdEEE"><code class="docutils literal notranslate"><span class="pre">masses()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder6massesERRNSt6vectorIN5Eigen8VectorXdEEE"><code class="docutils literal notranslate"><span class="pre">masses()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie17InitConfigBuilder5buildEv"><code class="docutils literal notranslate"><span class="pre">build()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I_NSt28uniform_random_bit_generatorE_8LogpGradEN9walnutpie17InitConfigBuilder16adapt_step_buildE10InitConfigR3RNGRK1F"><code class="docutils literal notranslate"><span class="pre">adapt_step_build()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilderE"><code class="docutils literal notranslate"><span class="pre">walnutpie::WarmupConfigBuilder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder12min_max_iterENSt6size_tENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">min_max_iter()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder22step_size_converge_tolEd"><code class="docutils literal notranslate"><span class="pre">step_size_converge_tol()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder17mass_converge_tolEd"><code class="docutils literal notranslate"><span class="pre">mass_converge_tol()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder15mass_init_countEd"><code class="docutils literal notranslate"><span class="pre">mass_init_count()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder23mass_additive_smoothingEd"><code class="docutils literal notranslate"><span class="pre">mass_additive_smoothing()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder22max_macro_steps_targetEd"><code class="docutils literal notranslate"><span class="pre">max_macro_steps_target()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder23step_accept_rate_targetEd"><code class="docutils literal notranslate"><span class="pre">step_accept_rate_target()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder18step_learning_rateEd"><code class="docutils literal notranslate"><span class="pre">step_learning_rate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder19step_gradient_decayEd"><code class="docutils literal notranslate"><span class="pre">step_gradient_decay()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder22step_sq_gradient_decayEd"><code class="docutils literal notranslate"><span class="pre">step_sq_gradient_decay()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder18step_stabilizationEd"><code class="docutils literal notranslate"><span class="pre">step_stabilization()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder21step_learn_rate_decayEd"><code class="docutils literal notranslate"><span class="pre">step_learn_rate_decay()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder14publish_strideENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">publish_stride()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder12yield_periodENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">yield_period()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie19WarmupConfigBuilder5buildEv"><code class="docutils literal notranslate"><span class="pre">build()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilderE"><code class="docutils literal notranslate"><span class="pre">walnutpie::SamplingConfigBuilder</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder12min_max_iterENSt6size_tENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">min_max_iter()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder24max_trajectory_doublingsENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">max_trajectory_doublings()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder17max_step_halvingsENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">max_step_halvings()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder21max_hamiltonian_errorEd"><code class="docutils literal notranslate"><span class="pre">max_hamiltonian_error()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder15min_micro_stepsENSt6size_tE"><code class="docutils literal notranslate"><span class="pre">min_micro_steps()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder17rhat_converge_tolEd"><code class="docutils literal notranslate"><span class="pre">rhat_converge_tol()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie21SamplingConfigBuilder5buildEv"><code class="docutils literal notranslate"><span class="pre">build()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie10InitConfigE"><code class="docutils literal notranslate"><span class="pre">walnutpie::InitConfig</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie12WarmupConfigE"><code class="docutils literal notranslate"><span class="pre">walnutpie::WarmupConfig</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4N9walnutpie14SamplingConfigE"><code class="docutils literal notranslate"><span class="pre">walnutpie::SamplingConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#concepts">Concepts</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I0EN9walnutpie8LogpGradE"><code class="docutils literal notranslate"><span class="pre">LogpGrad</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I0EN9walnutpie13ErrorCallbackE"><code class="docutils literal notranslate"><span class="pre">ErrorCallback</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I0EN9walnutpie13SampleHandlerE"><code class="docutils literal notranslate"><span class="pre">SampleHandler</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I0EN9walnutpie12ChainHandlerE"><code class="docutils literal notranslate"><span class="pre">ChainHandler</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I0EN9walnutpie13GlobalHandlerE"><code class="docutils literal notranslate"><span class="pre">GlobalHandler</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#_CPPv4I0EN9walnutpie17InterruptCallbackE"><code class="docutils literal notranslate"><span class="pre">InterruptCallback</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  
+  <div class="tocsection editthispage">
+    <a href="https://github.com/flatironinstitute/walnutpie/edit/main/docs/cpp.rst">
+      <i class="fa-solid fa-pencil"></i>
+      
+      
+        
+          Edit on GitHub
+        
+      
+    </a>
+  </div>
+</div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="_sources/cpp.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Walnutpie Developers.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
