@@ -1,6 +1,6 @@
+import ctypes
 import os
 import sys
-import ctypes
 from typing import Any, Dict, List, Mapping, Optional, Union
 
 import bridgestan
@@ -8,12 +8,18 @@ import numpy as np
 import stanio
 
 from ._ffi import (
+    WALNUTPY_SEP,
     _ffi_sample_bridgestan,
     bs_print_callback_type,
-    WALNUTPY_SEP,
     print_callback,
 )
-from .util import WarmupInfo, prepare_seed, prepare_output_buffer, prepare_inv_metric
+from .util import (
+    WarmupInfo,
+    prepare_inv_metric,
+    prepare_output_buffer,
+    prepare_seed,
+    will_stop_adaptively,
+)
 
 StanData = Union[str, os.PathLike, Mapping[str, Any]]
 
@@ -306,11 +312,16 @@ def walnuts_stan(
             "BridgeStan model must be compiled with STAN_THREADS for use with walnuts"
         )
 
-    is_adaptive = num_chains > 1 and (
-        min_warmup_iter != max_warmup_iter or min_sampling_iter != max_sampling_iter
+    seed = prepare_seed(
+        seed,
+        will_stop_adaptively=will_stop_adaptively(
+            num_chains=num_chains,
+            min_warmup_iter=min_warmup_iter,
+            max_warmup_iter=max_warmup_iter,
+            min_sampling_iter=min_sampling_iter,
+            max_sampling_iter=max_sampling_iter,
+        ),
     )
-
-    seed = prepare_seed(seed, is_adaptive)
 
     model_params = model.param_unc_num()
     param_names = model.param_names(include_tp=True, include_gq=True)

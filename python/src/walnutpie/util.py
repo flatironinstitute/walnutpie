@@ -5,14 +5,27 @@ from typing import Generic, Optional, TypeVar
 import numpy as np
 
 
+def will_stop_adaptively(
+    *,
+    num_chains: int,
+    min_warmup_iter: int,
+    max_warmup_iter: int,
+    min_sampling_iter: int,
+    max_sampling_iter: int,
+) -> bool:
+    return num_chains > 1 and (
+        min_warmup_iter != max_warmup_iter or min_sampling_iter != max_sampling_iter
+    )
+
+
 def rand_u32():
     """Generate a random 32-bit unsigned integer."""
     return np.random.randint(0, 2**32 - 1, dtype=np.uint32)
 
 
-def prepare_seed(seed: Optional[int], is_adaptive: bool) -> int:
+def prepare_seed(seed: Optional[int], will_stop_adaptively: bool) -> int:
     if seed is not None:
-        if is_adaptive:
+        if will_stop_adaptively:
             warnings.warn(
                 "Setting 'seed' without also disabling adaptive stopping "
                 "(by setting min and max number of iterations for warmup and sampling) "
