@@ -28,7 +28,7 @@ def prepare_seed(seed: Optional[int], will_stop_adaptively: bool) -> int:
         if will_stop_adaptively:
             warnings.warn(
                 "Setting 'seed' without also disabling adaptive stopping "
-                "(by setting min and max number of iterations for warmup and sampling) "
+                "(by setting min and max number of iterations to the same value, for both warmup and sampling) "
                 "will not lead to reproducible sampling due to thread scheduling!",
                 UserWarning,
                 stacklevel=3,
