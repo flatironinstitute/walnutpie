@@ -1,7 +1,21 @@
+import warnings
 from dataclasses import dataclass
 from typing import Generic, Optional, TypeVar
 
 import numpy as np
+
+
+def will_stop_adaptively(
+    *,
+    num_chains: int,
+    min_warmup_iter: int,
+    max_warmup_iter: int,
+    min_sampling_iter: int,
+    max_sampling_iter: int,
+) -> bool:
+    return num_chains > 1 and (
+        min_warmup_iter != max_warmup_iter or min_sampling_iter != max_sampling_iter
+    )
 
 
 def rand_u32():
@@ -9,8 +23,18 @@ def rand_u32():
     return np.random.randint(0, 2**32 - 1, dtype=np.uint32)
 
 
-def prepare_seed(seed: Optional[int]) -> int:
-    return seed if seed is not None else rand_u32()
+def prepare_seed(seed: Optional[int], will_stop_adaptively: bool) -> int:
+    if seed is not None:
+        if will_stop_adaptively:
+            warnings.warn(
+                "Setting 'seed' without also disabling adaptive stopping "
+                "(by setting min and max number of iterations to the same value, for both warmup and sampling) "
+                "will not lead to reproducible sampling due to thread scheduling!",
+                UserWarning,
+                stacklevel=3,
+            )
+        return seed
+    return rand_u32()
 
 
 def prepare_output_buffer(

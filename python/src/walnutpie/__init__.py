@@ -24,4 +24,4 @@ __all__ = [
     "standard_deviation",
     "Summarizer",
 ]
-__version__ = "0.0.1"
+__version__ = "0.0.2"

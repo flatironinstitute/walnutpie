@@ -4,7 +4,13 @@ from typing import Any, Callable, Optional, Union
 import numpy as np
 
 from ._ffi import _ffi_sample_cfunc, logp_cfunc_type, print_callback
-from .util import WarmupInfo, prepare_seed, prepare_output_buffer, prepare_inv_metric
+from .util import (
+    WarmupInfo,
+    prepare_inv_metric,
+    prepare_output_buffer,
+    prepare_seed,
+    will_stop_adaptively,
+)
 
 
 class WalnutsOutputArray(np.ndarray):
@@ -181,7 +187,16 @@ def walnuts_pyfunc(
         else:
             num_params = init_shape[0]
 
-    seed = prepare_seed(seed)
+    seed = prepare_seed(
+        seed,
+        will_stop_adaptively=will_stop_adaptively(
+            num_chains=num_chains,
+            min_warmup_iter=min_warmup_iter,
+            max_warmup_iter=max_warmup_iter,
+            min_sampling_iter=min_sampling_iter,
+            max_sampling_iter=max_sampling_iter,
+        ),
+    )
 
     out = prepare_output_buffer(
         num_chains=num_chains,
