@@ -22,31 +22,14 @@ option(WALNUTPIE_COVERAGE "Enable source-based test coverage instrumentation" OF
 ##########################
 ## Global Dependencies  ##
 ##########################
-find_package(Git REQUIRED)
-
-# where to put Eigen
-set(EIGEN_SRC_DIR "${CMAKE_BINARY_DIR}/_deps/eigen")
-set(EIGEN_TAG 3.4.0)
-# only clone on first configure
-if(NOT EXISTS "${EIGEN_SRC_DIR}/Eigen")
-    message(STATUS "Cloning Eigen ${EIGEN_TAG}…")
-    # this is working around an issue with Eigen that may no longer be an issue
-    execute_process(
-    COMMAND ${GIT_EXECUTABLE} clone --branch ${EIGEN_TAG} --depth 1 -- https://gitlab.com/libeigen/eigen.git ${EIGEN_SRC_DIR}
-    RESULT_VARIABLE _git_result
-  )
-    if(NOT _git_result EQUAL 0)
-        message(FATAL_ERROR "Git clone of Eigen failed")
-    endif()
-endif()
-
-# now expose it as a pure‐header interface target
-add_library(Eigen3::Eigen INTERFACE IMPORTED)
-target_include_directories(Eigen3::Eigen INTERFACE
-  "${EIGEN_SRC_DIR}"
-)
-
 include(FetchContent)
+
+FetchContent_Declare(eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG        5.0.1
+)
+FetchContent_MakeAvailable(eigen)
+
 
 set(WALNUTPIE_MIMALLOC_TAG "v2.2.3" CACHE STRING "Version of mimalloc to use")
 if(WALNUTPIE_USE_MIMALLOC)
