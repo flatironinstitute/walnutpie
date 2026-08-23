@@ -16,6 +16,7 @@
 #include "walnutpie/concepts.hpp"
 #include "walnutpie/util.hpp"
 #include "walnutpie/validate.hpp"
+#include "walnutpie/pin_trace.hpp"
 
 namespace walnutpie::detail {
 
@@ -270,8 +271,11 @@ static bool reversible(const F& logp_grad, const Eigen::VectorXd& inv_mass,
     grad_next = grad;
     num_steps /= 2;
     step *= 2;
-    if (within_tolerance(logp_grad, inv_mass, step, num_steps, max_error,
-                         logp_next, theta_next, rho_next, grad_next)) {
+    bool within_tol = within_tolerance(logp_grad, inv_mass, step, num_steps,
+                                       max_error, logp_next, theta_next,
+                                       rho_next, grad_next);
+    pin_trace::observe_ladder(within_tol, num_steps);  // W-43: no-op off
+    if (within_tol) {
       return false;
     }
   }
@@ -319,6 +323,7 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
       is_forward ? span.grad_theta_fw_ : span.grad_theta_bk_;
   double logp = is_forward ? span.logp_fw_ : span.logp_bk_;
   step = is_forward ? step : -step;
+  pin_trace::observe_macro_step();                  // W-43: env-gated, no-op off
   for (std::size_t num_steps = min_micro_steps, halvings = 0;
        halvings < max_step_halvings; ++halvings, num_steps *= 2, step *= 0.5) {
     theta_next = theta;
@@ -332,15 +337,32 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
       rho_next += half_step * grad_next;
     }
     logp_next = logp_pos_next + logp_momentum(rho_next, inv_mass);
+    pin_trace::observe_attempt(std::fabs(logp - logp_next),
+                               num_steps);  // W-43: env-gated, no-op off
     if (num_steps == min_micro_steps) {
       double min_accept = std::exp(-std::fabs(logp - logp_next));
+      if (const char* dbg = std::getenv("WALNUTPIE_DEBUG_ALPHA")) {
+        static std::size_t alpha_n = 0;
+        ++alpha_n;
+        if (alpha_n <= static_cast<std::size_t>(atoi(dbg))) {
+          std::cout << "[alpha " << alpha_n << "] " << min_accept
+                    << " dlogp=" << (logp - logp_next)
+                    << " macro_step=" << std::fabs(step) << std::endl;
+        }
+      }
+      pin_trace::observe_min_attempt(min_accept, logp - logp_next,
+                                     std::fabs(step));  // W-43: no-op off
       adapt_handler(min_accept);
     }
     if (std::fabs(logp - logp_next) <= max_error) {
-      return reversible(logp_grad, inv_mass, step, num_steps, min_micro_steps,
-                        max_error, logp_next, theta_next, rho_next, grad_next);
+      bool reversible_ok =
+          reversible(logp_grad, inv_mass, step, num_steps, min_micro_steps,
+                     max_error, logp_next, theta_next, rho_next, grad_next);
+      pin_trace::observe_outcome(reversible_ok, halvings);  // W-43
+      return reversible_ok;
     }
   }
+  pin_trace::observe_exhausted();  // W-43: env-gated, no-op off
   return false;
 }
 
@@ -525,8 +547,11 @@ inline Eigen::VectorXd transition_w(
     double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
     Eigen::VectorXd& theta_grad, double& logp_pos_select,
     A& step_size_adapter) {
+  pin_trace::begin_transition();     // W-43: env-gated, no-op off
   auto z = rand.standard_normal(chol_mass.size());
   Eigen::VectorXd rho = (chol_mass.array() * z.array()).matrix();
+  pin_trace::observe_step(step);  // W-43: env-gated, no-op off (macro step used)
+  pin_trace::observe_z(z.norm());  // W-43: env-gated, no-op off (momentum draw)
   Eigen::VectorXd grad(theta.size());
   double logp_pos;
   logp_grad(theta, logp_pos, grad);

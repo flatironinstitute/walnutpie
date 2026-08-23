@@ -79,6 +79,47 @@ class StanHandler {
 
   void on_warmup(const Eigen::VectorXd& position, double lp, double step_size,
                  const Eigen::VectorXd& diag_inv_mass) {
+    // W-43: per-iteration pin-diagnosis trace (env-gated, zero behavior).
+    // Reads this iteration's pin_trace scratch (filled by the transition
+    // that just ran) and prints one record per warmup iteration.
+    if (walnutpie::detail::pin_trace::on()) {
+      if (trace_init_.size() == 0) {
+        trace_init_ = position;
+      }
+      const double invm_geo =
+          diag_inv_mass.size()
+              ? std::exp(diag_inv_mass.array().log().mean())
+              : -1.0;
+      const double invm_min =
+          diag_inv_mass.size() ? diag_inv_mass.minCoeff() : -1.0;
+      const double invm_max =
+          diag_inv_mass.size() ? diag_inv_mass.maxCoeff() : -1.0;
+      const Eigen::VectorXd drift = position - trace_init_;
+      const bool moved =
+          trace_prev_.size() == position.size() &&
+          (trace_prev_.array() != position.array()).any();
+      std::cout << "[pin-trace] it=" << warmup_dbg_it_ << " lp=" << lp
+                << " step=" << step_size << " invm_geo=" << invm_geo
+                << " invm_min=" << invm_min << " invm_max=" << invm_max
+                << " pos_l2=" << drift.norm()
+                << " pos_max=" << drift.cwiseAbs().maxCoeff()
+                << " moved=" << (moved ? 1 : 0)
+                << " macro=" << walnutpie::detail::pin_trace::macro_steps
+                << " attempts=" << walnutpie::detail::pin_trace::attempts
+                << " evals=" << walnutpie::detail::pin_trace::evals
+                << " znorm=" << walnutpie::detail::pin_trace::z_norm
+                << " alpha=" << walnutpie::detail::pin_trace::alpha
+                << " dlogp=" << walnutpie::detail::pin_trace::dlogp
+                << " mindh=" << walnutpie::detail::pin_trace::min_abs_dh
+                << " tolpass="
+                << (walnutpie::detail::pin_trace::tol_pass_any ? 1 : 0)
+                << " hacc=" << walnutpie::detail::pin_trace::h_accept
+                << " ladrej=" << walnutpie::detail::pin_trace::ladder_rejects
+                << " exhaust=" << walnutpie::detail::pin_trace::exhausted
+                << std::endl;
+      trace_prev_ = position;
+    }
+    ++warmup_dbg_it_;
     if (!save_warmup_) {
       return;
     }
@@ -111,6 +152,9 @@ class StanHandler {
   Eigen::MatrixXd draws_;
   bool save_warmup_;
   Eigen::Index n_ = 0;
+  std::size_t warmup_dbg_it_ = 0;
+  Eigen::VectorXd trace_init_;  // W-43: first traced warmup position
+  Eigen::VectorXd trace_prev_;  // W-43: previous traced warmup position
 };
 
 StanHandler run_walnuts(DynamicStanModel& model, unsigned int seed,
