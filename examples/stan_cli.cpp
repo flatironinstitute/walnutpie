@@ -177,6 +177,16 @@ StanHandler run_walnuts(DynamicStanModel& model, unsigned int seed,
     std::cout << "logp_grad fraction: " << logp_time / global_total_time
               << std::endl;
     std::cout << "        logp_grad calls: " << logp_count << std::endl;
+    // W-61: forward vs backward-ladder gradient split (pin-trace totals).
+    if (walnutpie::detail::pin_trace::on()) {
+      const auto fwd = walnutpie::detail::pin_trace::total_evals_forward;
+      const auto lad = walnutpie::detail::pin_trace::total_evals_ladder;
+      std::cout << "        w61 forward evals: " << fwd
+                << " ladder evals: " << lad << " ladder fraction: "
+                << (fwd + lad > 0 ? static_cast<double>(lad) / (fwd + lad)
+                                  : 0.0)
+                << std::endl;
+    }
     std::cout << "        time per call: " << logp_time / logp_count << "s"
               << std::endl;
     std::cout << std::endl;

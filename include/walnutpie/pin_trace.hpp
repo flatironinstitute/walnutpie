@@ -66,6 +66,12 @@ inline double dlogp =                // last macro step's min-attempt dH
     std::numeric_limits<double>::quiet_NaN();
 inline double step_abs = -1.0;       // |step| of that min attempt
 
+// Run-lifetime totals (never reset by begin_transition) so the CLI can
+// report the backward-ladder share of the gradient budget over the whole
+// run, sampling phase included. Env-gated scratch only.
+inline std::uint64_t total_evals_forward = 0;
+inline std::uint64_t total_evals_ladder = 0;
+
 /** @brief Reset the per-transition scratch (call at transition start). */
 inline void begin_transition() {
   if (!on()) {
@@ -120,6 +126,7 @@ inline void observe_attempt(double abs_dh, std::size_t num_evals) {
   }
   ++attempts;
   evals += static_cast<std::uint64_t>(num_evals);
+  total_evals_forward += static_cast<std::uint64_t>(num_evals);
   if (abs_dh < min_abs_dh) {
     min_abs_dh = abs_dh;
   }
@@ -160,6 +167,7 @@ inline void observe_ladder(bool within_tol, std::size_t num_evals) {
   }
   ++ladder_calls;
   evals += static_cast<std::uint64_t>(num_evals);
+  total_evals_ladder += static_cast<std::uint64_t>(num_evals);
   if (within_tol) {
     ++ladder_rejects;
   }
