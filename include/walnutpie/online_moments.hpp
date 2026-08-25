@@ -183,7 +183,11 @@ class OnlineMoments {
    */
   template <typename Derived>
   void observe(const Eigen::MatrixBase<Derived>& y) {
-    auto delta = y - mean_;
+    // Materialize the deviation BEFORE updating mean_: `auto delta = ...`
+    // would bind a lazy expression referencing mean_, and the sum_sq_dev_
+    // line would then evaluate (y - mean_new)^2 instead of the Welford
+    // cross-term delta_old * (y - mean_new) this class documents.
+    const Eigen::VectorXd delta = (y - mean_).eval();
     weight_ = discount_factor_ * weight_ + 1;
     mean_ += delta / weight_;
     sum_sq_dev_.noalias() =
