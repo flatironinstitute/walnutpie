@@ -233,7 +233,7 @@ def walnuts_pyfunc(
         logp_c_data = None
     elif isinstance(logp, tuple):
         logp_c = logp[0]
-        logp_c_data = ctypes.byref(logp[1]) if logp[1] is not None else None
+        logp_c_data = logp[1]
     else:
         # if we just have a generic python function, best we can do is wrap it
         # TODO: a faster path exist for JAX?
