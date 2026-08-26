@@ -33,7 +33,7 @@ class Summarizer:
         self._lengths = np.array([c.shape[0] for c in draws], dtype=np.int32)
         self._num_chains = len(draws)
 
-    # Implement the simple functions directly in Python rather than with ffi       
+    # Implement the simple functions directly in Python rather than with ffi
     def mean(self):
         """
         Compute the arithmetic mean of sampled variables across all draws.
@@ -43,7 +43,7 @@ class Summarizer:
         np.ndarray
             The posterior means.
         """
-        return np.mean(self._stacked, axis=0)
+        return np.mean(self._stacked, axis=1)
 
     def variance(self):
         """
@@ -55,7 +55,7 @@ class Summarizer:
         np.ndarray
             The posterior sample variances.
         """
-        return np.var(self._stacked, axis=0, ddof=1)
+        return np.var(self._stacked, axis=1, ddof=1)
 
     def standard_deviation(self):
         """
@@ -67,7 +67,7 @@ class Summarizer:
         np.ndarray
             The posterior sample standard deviations.
         """
-        return np.std(self._stacked, axis=0, ddof=1)
+        return np.std(self._stacked, axis=1, ddof=1)
 
     def ess(self) -> np.ndarray:
         """
