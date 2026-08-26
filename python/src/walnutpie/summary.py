@@ -27,8 +27,8 @@ class Summarizer:
 
         if hasattr(draws[0], "parameters"):  # StanOutputBase
             draws = [c.data for c in draws]
-        self._stacked = np.concat(draws)
-        self._num_draws, self._num_params = self._stacked.shape
+        self._stacked = np.ascontiguousarray(np.concat(draws).transpose())
+        self._num_params, self._num_draws = self._stacked.shape
 
         self._lengths = np.array([c.shape[0] for c in draws], dtype=np.int32)
         self._num_chains = len(draws)
