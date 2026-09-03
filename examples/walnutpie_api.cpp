@@ -54,7 +54,12 @@ int main() {
 
   CppInterruptCallback interrupt_callback;
   GlobalStore global_handler;
-  std::vector<ChainStore> chain_handlers(num_chains);
+  std::vector<ChainStore> chain_handlers;
+  chain_handlers.reserve(num_chains);
+
+  for (std::size_t i = 0; i < num_chains; i++) {
+    chain_handlers.emplace_back(ChainStore(true));
+  }
 
   auto init_cfg =
       walnutpie::InitConfigBuilder(num_chains, dims)

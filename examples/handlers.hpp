@@ -124,7 +124,7 @@ class ChainStore {
    *
    * @param[in] save_warmup Set to `true` to save warmup iterations.
    */
-  ChainStore(bool save_warmup = false) : save_warmup_(save_warmup) {}
+  explicit ChainStore(bool save_warmup = false) : save_warmup_(save_warmup) {}
 
   /**
    * @brief Handle a warmup draw with meta-information.
@@ -223,7 +223,7 @@ class ChainStore {
    * @return The warmup draws.
    */
   const std::vector<Eigen::VectorXd>& warmup_draws() const noexcept {
-    return draws_;
+    return warmup_draws_;
   }
 
   /**
@@ -231,7 +231,9 @@ class ChainStore {
    *
    * @return The warmup log densities.
    */
-  const std::vector<double>& warmup_log_probs() const noexcept { return lps_; }
+  const std::vector<double>& warmup_log_probs() const noexcept {
+    return warmup_lps_;
+  }
 
   /**
    * @brief Return the step sizes from warmup.
