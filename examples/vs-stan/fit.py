@@ -15,13 +15,13 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 SEED=5678
 
 STAN_JSON_PAIRS = [
-    ("simple/funnel.stan", "simple/funnel.json")
-    # ("multilevel_regression/multilevel_regression.stan", "multilevel_regression/multilevel_regression.json"),
-    # ("multilevel_regression/multilevel_regression_logit.stan", "multilevel_regression/multilevel_regression_logit.json"),
-    # ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_1.json"),
+    ("funnel/funnel.stan", "funnel/funnel.json"),
+    ("multilevel_regression/multilevel_regression.stan", "multilevel_regression/multilevel_regression.json"),
+    ("multilevel_regression/multilevel_regression_logit.stan", "multilevel_regression/multilevel_regression_logit.json"),
+    ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_1.json"),
     ### ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_5.json"),
-    # ("hierarchical_matrix/hierarchical_matrix_1.stan", "hierarchical_matrix/hierarchical_matrix.json"),
-    # ("hierarchical_matrix/hierarchical_matrix_2.stan", "hierarchical_matrix/hierarchical_matrix.json"),
+    ("hierarchical_matrix/hierarchical_matrix_1.stan", "hierarchical_matrix/hierarchical_matrix.json"),
+    ("hierarchical_matrix/hierarchical_matrix_2.stan", "hierarchical_matrix/hierarchical_matrix.json")
     ]
    
 
