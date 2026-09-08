@@ -20,6 +20,8 @@ struct RecordingAdapter {
 template <Direction D, typename F, typename A>
 bool take_macro_step(const F& logp_grad, A& adapter,
                      std::size_t max_halvings = 3) {
+  // The initial state has finite log density and gradient. Invalid values
+  // below arise only when evaluating a proposed point, not at initialization.
   auto span = SpanW::from_initial_point(Eigen::VectorXd::Zero(1),
                                         Eigen::VectorXd::Ones(1),
                                         Eigen::VectorXd::Zero(1), 0.0, -0.5);
@@ -34,9 +36,9 @@ TEST(MacroStepAdaptation, NonfiniteLogDensityIsZeroAcceptanceInBothDirections) {
   for (double logp : {std::numeric_limits<double>::quiet_NaN(),
                       std::numeric_limits<double>::infinity(),
                       -std::numeric_limits<double>::infinity()}) {
-    auto target = [logp](const Eigen::VectorXd&, double& lp,
+    auto target = [logp](const Eigen::VectorXd& theta, double& lp,
                          Eigen::VectorXd& grad) {
-      lp = logp;
+      lp = theta.isZero(0.0) ? 0.0 : logp;
       grad.setZero();
     };
     RecordingAdapter forward, backward;
