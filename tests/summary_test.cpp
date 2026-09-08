@@ -196,6 +196,14 @@ TEST(MarkovChainsUnified, ChainViewThrowsOnOutOfRangeIndex) {
   walnutpie::MarkovChainsUnified mcu(draws, chain_sizes);
   EXPECT_THROW(mcu.chain_view(3), std::out_of_range);
   EXPECT_THROW(mcu.chain_view(99), std::out_of_range);
+  EXPECT_THROW(mcu.chain_view(std::numeric_limits<std::size_t>::max()),
+               std::out_of_range);
+}
+
+TEST(MarkovChainsUnified, EmptyCollectionChainViewThrows) {
+  Eigen::MatrixXd draws(0, 2);
+  walnutpie::MarkovChainsUnified mcu(draws, {});
+  EXPECT_THROW(mcu.chain_view(0), std::out_of_range);
 }
 
 // draws

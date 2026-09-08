@@ -317,7 +317,7 @@ class MarkovChainsUnified {
    * the number of chains.
    */
   Eigen::Ref<const Eigen::MatrixXd> chain_view(std::size_t m) const {
-    return draws_.middleRows(chain_starts_.at(m), chain_sizes_[m]);
+    return draws_.middleRows(chain_starts_.at(m), chain_sizes_.at(m));
   }
 
   /**
