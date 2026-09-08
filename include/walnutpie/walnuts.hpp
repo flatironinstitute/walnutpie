@@ -17,7 +17,29 @@
 #include "walnutpie/util.hpp"
 #include "walnutpie/validate.hpp"
 
+namespace walnutpie {
+/** Endpoint reuse is opt-in because LogpGrad does not require a stable target.
+ */
+enum class EndpointReuse { Disabled, Deterministic };
+}  // namespace walnutpie
+
 namespace walnutpie::detail {
+
+/** A value-owned, finite endpoint. The owner keeps it paired with its position.
+ */
+struct EndpointCache {
+  bool valid = false;
+  Eigen::VectorXd gradient;
+  double logp = 0;
+
+  void store(Eigen::VectorXd&& grad, double lp) {
+    valid = std::isfinite(lp) && grad.allFinite();
+    if (valid) {
+      gradient = std::move(grad);
+      logp = lp;
+    }
+  }
+};
 
 /**
  * @brief A class for holding the minimal information in a Hamiltonian
@@ -512,24 +534,29 @@ static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
  * @param[in] max_error The maximum difference in Hamiltonians.
  * @param[in] theta The current state.
  * @param[out] depth The tree depth used by the transition.
- * @param[out] theta_grad The gradient of the log density at the previous state.
+ * @param[out] theta_grad The gradient of the log density at the selected state.
  * @param[out] logp_pos_select The log density of the selected position.
  * @param[in,out] step_size_adapter The step-size adaptation handler.
  * @return The next position in the Markov chain.
  */
 template <LogpGrad F, class Rand, StepSizeAdapter A>
-inline Eigen::VectorXd transition_w(
+inline Eigen::VectorXd transition_w_impl(
     Rand& rand, const F& logp_grad, const Eigen::VectorXd& inv_mass,
     const Eigen::VectorXd& chol_mass, double step, std::size_t max_depth,
     std::size_t max_step_halvings, std::size_t min_micro_steps,
     double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
-    Eigen::VectorXd& theta_grad, double& logp_pos_select,
-    A& step_size_adapter) {
+    Eigen::VectorXd& theta_grad, double& logp_pos_select, A& step_size_adapter,
+    const EndpointCache* cache) {
   auto z = rand.standard_normal(chol_mass.size());
   Eigen::VectorXd rho = (chol_mass.array() * z.array()).matrix();
   Eigen::VectorXd grad(theta.size());
   double logp_pos;
-  logp_grad(theta, logp_pos, grad);
+  if (cache && cache->valid && cache->gradient.size() == theta.size()) {
+    grad = cache->gradient;
+    logp_pos = cache->logp;
+  } else {
+    logp_grad(theta, logp_pos, grad);
+  }
   double logp_joint = logp_pos + logp_momentum(rho, inv_mass);
   auto span_accum = SpanW::from_initial_point(
       std::move(theta), std::move(rho), std::move(grad), logp_pos, logp_joint);
@@ -560,6 +587,21 @@ inline Eigen::VectorXd transition_w(
   theta_grad = span_accum.grad_select_;
   logp_pos_select = span_accum.logp_pos_select_;
   return std::move(span_accum.theta_select_);
+}
+
+/** Uncached entry point retained for existing callers. */
+template <LogpGrad F, class Rand, StepSizeAdapter A>
+inline Eigen::VectorXd transition_w(
+    Rand& rand, const F& logp_grad, const Eigen::VectorXd& inv_mass,
+    const Eigen::VectorXd& chol_mass, double step, std::size_t max_depth,
+    std::size_t max_step_halvings, std::size_t min_micro_steps,
+    double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
+    Eigen::VectorXd& theta_grad, double& logp_pos_select,
+    A& step_size_adapter) {
+  return transition_w_impl(rand, logp_grad, inv_mass, chol_mass, step,
+                           max_depth, max_step_halvings, min_micro_steps,
+                           max_error, std::move(theta), depth, theta_grad,
+                           logp_pos_select, step_size_adapter, nullptr);
 }
 
 /**
@@ -622,6 +664,10 @@ class WalnutsSampler {
    * halved.
    * @param[in] min_micro_steps The minimum number of micro steps per macro
    * step.
+   * @param[in] endpoint_reuse Deterministic reuse requires a position-only,
+   * stable target, including across handler callbacks. Evaluation side effects
+   * must not affect target results. Invalidate the cache after target changes.
+   * The default preserves reevaluation and exception retry behavior.
    * @param[in] max_error The log of the maximum error in joint densities
    * allowed in Hamiltonian trajectories.
    * @throw std::invalid_argument If `inv_mass_matrix` has non-positive or
@@ -638,11 +684,13 @@ class WalnutsSampler {
                  const Eigen::VectorXd& theta, const Eigen::VectorXd& inv_mass,
                  double macro_time, std::size_t max_nuts_depth,
                  std::size_t max_step_halvings, std::size_t min_micro_steps,
-                 double max_error)
+                 double max_error,
+                 EndpointReuse endpoint_reuse = EndpointReuse::Disabled)
       : rand_(rng),
         sample_handler_(sample_handler),
         logp_grad_(logp_grad, sample_handler),
         theta_(theta),
+        endpoint_reuse_(endpoint_reuse),
         inv_mass_(inv_mass),
         cholesky_mass_(inv_mass.array().sqrt().inverse().matrix()),
         macro_time_(macro_time),
@@ -683,13 +731,21 @@ class WalnutsSampler {
     std::size_t depth;
     Eigen::VectorXd grad_next;
     double logp_pos;
-    theta_ = transition_w(rand_, logp_grad_, inv_mass_, cholesky_mass_,
-                          macro_time_, max_nuts_depth_, max_step_halvings_,
-                          min_micro_steps_, max_error_, std::move(theta_),
-                          depth, grad_next, logp_pos, no_op_step_size_adapter_);
+    theta_ = detail::transition_w_impl(
+        rand_, logp_grad_, inv_mass_, cholesky_mass_, macro_time_,
+        max_nuts_depth_, max_step_halvings_, min_micro_steps_, max_error_,
+        std::move(theta_), depth, grad_next, logp_pos, no_op_step_size_adapter_,
+        endpoint_reuse_ == EndpointReuse::Deterministic ? &endpoint_cache_
+                                                        : nullptr);
+    if (endpoint_reuse_ == EndpointReuse::Deterministic) {
+      endpoint_cache_.store(std::move(grad_next), logp_pos);
+    }
     sample_handler_.get().on_sample(theta_, logp_pos);
     return logp_pos;
   }
+
+  /** Discard the endpoint after changing target data between draws. */
+  void invalidate_endpoint_cache() noexcept { endpoint_cache_.valid = false; }
 
   /**
    * @brief  Return a constant reference the diagonal of the diagonal inverse
@@ -728,6 +784,9 @@ class WalnutsSampler {
   }
 
  private:
+  template <LogpGrad G, std::uniform_random_bit_generator R, ChainHandler C>
+  friend class AdaptiveWalnuts;
+
   /** The underlying randomizer. */
   detail::Random<RNG> rand_;
 
@@ -739,6 +798,9 @@ class WalnutsSampler {
 
   /** The current position. */
   Eigen::VectorXd theta_;
+
+  EndpointReuse endpoint_reuse_;
+  detail::EndpointCache endpoint_cache_;
 
   /** The diagonal of the diagonal inverse mass matrix. */
   Eigen::VectorXd inv_mass_;

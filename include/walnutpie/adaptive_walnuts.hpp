@@ -201,17 +201,23 @@ class AdaptiveWalnuts {
    * chain.
    * @param[in] warmup_cfg The warmup configuration.
    * @param[in] sampling_cfg The sampling configuration.
+   * @param[in] endpoint_reuse Deterministic reuse requires a stable,
+   * position-only target, including across warmup and completion callbacks.
+   * Invalidate after changes. The returned sampler inherits this policy and
+   * any finite endpoint; zero warmup leaves the cache empty.
    */
   AdaptiveWalnuts(RNG& rng, H& handler, const F& logp_grad,
                   const InitChainConfig& init_chain_cfg,
                   const WarmupConfig& warmup_cfg,
-                  const SamplingConfig& sampling_cfg)
+                  const SamplingConfig& sampling_cfg,
+                  EndpointReuse endpoint_reuse = EndpointReuse::Disabled)
       : warmup_cfg_(std::cref(warmup_cfg)),
         sampling_cfg_(std::cref(sampling_cfg)),
         rand_(rng),
         handler_(handler),
         logp_grad_(logp_grad, handler),
         theta_(init_chain_cfg.position()),
+        endpoint_reuse_(endpoint_reuse),
         iteration_(0),
         adam_(init_chain_cfg.step_size(), warmup_cfg.step_accept_rate_target(),
               warmup_cfg.step_learning_rate(), warmup_cfg.step_gradient_decay(),
@@ -237,15 +243,20 @@ class AdaptiveWalnuts {
     Eigen::VectorXd grad_select;
     double logp_select;
     std::size_t depth;
-    theta_ =
-        transition_w(rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
-                     sampling_cfg_.get().max_trajectory_doublings(),
-                     sampling_cfg_.get().max_step_halvings(),
-                     min_micro_estimator_.min_micro_steps(),
-                     sampling_cfg_.get().max_hamiltonian_error(),
-                     std::move(theta_), depth, grad_select, logp_select, adam_);
+    theta_ = detail::transition_w_impl(
+        rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
+        sampling_cfg_.get().max_trajectory_doublings(),
+        sampling_cfg_.get().max_step_halvings(),
+        min_micro_estimator_.min_micro_steps(),
+        sampling_cfg_.get().max_hamiltonian_error(), std::move(theta_), depth,
+        grad_select, logp_select, adam_,
+        endpoint_reuse_ == EndpointReuse::Deterministic ? &endpoint_cache_
+                                                        : nullptr);
     mass_estimator_.observe(theta_, grad_select, iteration_);
     min_micro_estimator_.observe(1 << depth);
+    if (endpoint_reuse_ == EndpointReuse::Deterministic) {
+      endpoint_cache_.store(std::move(grad_select), logp_select);
+    }
     handler_.get().on_warmup(theta_, logp_select, step_size(), inv_mass);
     ++iteration_;
   }
@@ -262,13 +273,18 @@ class AdaptiveWalnuts {
    */
   WalnutsSampler<F, RNG, H> sampler() {
     handler_.get().on_warmup_complete(step_size(), inv_mass());
-    return WalnutsSampler<F, RNG, H>(
+    WalnutsSampler<F, RNG, H> result(
         rand_.rng(), handler_, logp_grad_.logp_grad_, theta_, inv_mass(),
         step_size(), sampling_cfg_.get().max_trajectory_doublings(),
         sampling_cfg_.get().max_step_halvings(),
         min_micro_estimator_.min_micro_steps(),
-        sampling_cfg_.get().max_hamiltonian_error());
+        sampling_cfg_.get().max_hamiltonian_error(), endpoint_reuse_);
+    result.endpoint_cache_ = endpoint_cache_;
+    return result;
   }
+
+  /** Discard the endpoint after changing target data between draws. */
+  void invalidate_endpoint_cache() noexcept { endpoint_cache_.valid = false; }
 
   /**
    * @brief Return the diagonal of the diagonal inverse mass matrix.
@@ -347,6 +363,9 @@ class AdaptiveWalnuts {
 
   /** The current state. */
   Eigen::VectorXd theta_;
+
+  EndpointReuse endpoint_reuse_;
+  detail::EndpointCache endpoint_cache_;
 
   /** The current iteration. */
   std::size_t iteration_;

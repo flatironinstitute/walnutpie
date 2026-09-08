@@ -39,3 +39,5 @@ endfunction()
 add_test(summary)
 add_test(config)
 add_test(util)
+
+add_test(endpoint)
