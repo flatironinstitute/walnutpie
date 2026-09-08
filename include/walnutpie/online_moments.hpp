@@ -183,7 +183,8 @@ class OnlineMoments {
    */
   template <typename Derived>
   void observe(const Eigen::MatrixBase<Derived>& y) {
-    auto delta = y - mean_;
+    // Keep the deviation from the old mean for the variance update.
+    const Eigen::VectorXd delta = (y - mean_).eval();
     weight_ = discount_factor_ * weight_ + 1;
     mean_ += delta / weight_;
     sum_sq_dev_.noalias() =
