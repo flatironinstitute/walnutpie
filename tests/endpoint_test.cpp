@@ -115,9 +115,11 @@ TEST(EndpointReuse, FreezeEvaluatesOnceAtFinalWarmupPosition) {
   Target target;
   Handler handler;
   std::mt19937_64 rng(17);
+  auto warmup_cfg = WarmupConfigBuilder().build();
+  auto sampling_cfg = SamplingConfigBuilder().build();
   AdaptiveWalnuts<Target, std::mt19937_64, Handler> adaptive(
-      rng, handler, target, InitChainConfig(0.2, zero(), ones()),
-      WarmupConfigBuilder().build(), SamplingConfigBuilder().build());
+      rng, handler, target, InitChainConfig(0.2, zero(), ones()), warmup_cfg,
+      sampling_cfg);
   EXPECT_EQ(target.calls, 1);
   for (int i = 0; i < 20; ++i) {
     adaptive();
