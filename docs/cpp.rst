@@ -54,15 +54,3 @@ The following concepts describe the types expected by `walnutpie`.
 .. doxygenconcept:: walnutpie::ChainHandler
 .. doxygenconcept:: walnutpie::GlobalHandler
 .. doxygenconcept:: walnutpie::InterruptCallback
-
-Endpoint reuse
---------------
-
-Samplers reuse finite endpoint density/gradient values automatically. Targets
-must return the same results for the same position. After changing target data,
-call ``invalidate_endpoint_cache()`` on each affected sampler, including from
-callbacks that make such changes. A warmup-complete callback must invalidate
-the adaptive sampler before returning, or invalidate the returned fixed sampler
-before drawing. This does not make changing-target draws valid for inference.
-Failed/nonfinite endpoints are reevaluated. Zero warmup starts with no endpoint;
-otherwise the fixed sampler inherits the adaptive sampler's finite endpoint.

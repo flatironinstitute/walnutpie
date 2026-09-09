@@ -512,32 +512,27 @@ static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
  * @param[in] max_error The maximum difference in Hamiltonians.
  * @param[in] theta The current state.
  * @param[out] depth The tree depth used by the transition.
- * @param[out] theta_grad The gradient of the log density at the selected state.
- * @param[out] logp_pos_select The log density of the selected position.
+ * @param[in,out] theta_grad The gradient of the log density at `theta` on
+ * input; the gradient at the selected state on output.
+ * @param[in,out] logp_pos_select The log density of `theta` on input; the
+ * log density of the selected position on output.
  * @param[in,out] step_size_adapter The step-size adaptation handler.
  * @return The next position in the Markov chain.
  */
 template <LogpGrad F, class Rand, StepSizeAdapter A>
-inline Eigen::VectorXd transition_w_impl(
+inline Eigen::VectorXd transition_w(
     Rand& rand, const F& logp_grad, const Eigen::VectorXd& inv_mass,
     const Eigen::VectorXd& chol_mass, double step, std::size_t max_depth,
     std::size_t max_step_halvings, std::size_t min_micro_steps,
     double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
-    Eigen::VectorXd& theta_grad, double& logp_pos_select, A& step_size_adapter,
-    const Eigen::VectorXd* initial_gradient, double initial_logp) {
+    Eigen::VectorXd& theta_grad, double& logp_pos_select,
+    A& step_size_adapter) {
   auto z = rand.standard_normal(chol_mass.size());
   Eigen::VectorXd rho = (chol_mass.array() * z.array()).matrix();
-  Eigen::VectorXd grad(theta.size());
-  double logp_pos;
-  if (initial_gradient && initial_gradient->size() == theta.size()) {
-    grad = *initial_gradient;
-    logp_pos = initial_logp;
-  } else {
-    logp_grad(theta, logp_pos, grad);
-  }
-  double logp_joint = logp_pos + logp_momentum(rho, inv_mass);
-  auto span_accum = SpanW::from_initial_point(
-      std::move(theta), std::move(rho), std::move(grad), logp_pos, logp_joint);
+  double logp_joint = logp_pos_select + logp_momentum(rho, inv_mass);
+  auto span_accum = SpanW::from_initial_point(std::move(theta), std::move(rho),
+                                              std::move(theta_grad),
+                                              logp_pos_select, logp_joint);
   for (depth = 1; depth <= max_depth; ++depth) {
     // helper to turn runtime direction into compile-time template enum
     auto expand_in_direction = [&](auto direction) -> bool {
@@ -565,21 +560,6 @@ inline Eigen::VectorXd transition_w_impl(
   theta_grad = span_accum.grad_select_;
   logp_pos_select = span_accum.logp_pos_select_;
   return std::move(span_accum.theta_select_);
-}
-
-/** Uncached entry point retained for existing callers. */
-template <LogpGrad F, class Rand, StepSizeAdapter A>
-inline Eigen::VectorXd transition_w(
-    Rand& rand, const F& logp_grad, const Eigen::VectorXd& inv_mass,
-    const Eigen::VectorXd& chol_mass, double step, std::size_t max_depth,
-    std::size_t max_step_halvings, std::size_t min_micro_steps,
-    double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
-    Eigen::VectorXd& theta_grad, double& logp_pos_select,
-    A& step_size_adapter) {
-  return transition_w_impl(rand, logp_grad, inv_mass, chol_mass, step,
-                           max_depth, max_step_halvings, min_micro_steps,
-                           max_error, std::move(theta), depth, theta_grad,
-                           logp_pos_select, step_size_adapter, nullptr, 0);
 }
 
 /**
@@ -631,9 +611,6 @@ class WalnutsSampler {
    *
    * @param[in,out] rng The base random number generator.
    * @param[in,out] sample_handler The sampling and on-stop event handler.
-   * Finite endpoint values are reused. Targets must be stable at each position.
-   * Call invalidate_endpoint_cache() after changing target data.
-   *
    * @param[in] logp_grad The target log density and gradient function (see the
    * class documentation.
    * @param[in] theta The initial position.
@@ -680,6 +657,7 @@ class WalnutsSampler {
     detail::validate_positive(max_step_halvings, "max_step_halvings");
     detail::validate_positive(min_micro_steps, "min_micro_steps");
     detail::validate_positive(max_error, "max_error");
+    logp_grad_(theta_, logp_, grad_);
   }
 
   /**
@@ -704,22 +682,13 @@ class WalnutsSampler {
    */
   double operator()() {
     std::size_t depth;
-    theta_ = detail::transition_w_impl(
-        rand_, logp_grad_, inv_mass_, cholesky_mass_, macro_time_,
-        max_nuts_depth_, max_step_halvings_, min_micro_steps_, max_error_,
-        std::move(theta_), depth, endpoint_gradient_, endpoint_logp_,
-        no_op_step_size_adapter_,
-        endpoint_valid_ ? &endpoint_gradient_ : nullptr, endpoint_logp_);
-    endpoint_valid_ =
-        std::isfinite(endpoint_logp_) && endpoint_gradient_.allFinite();
-    double logp = endpoint_logp_;
-    sample_handler_.get().on_sample(theta_, logp);
-    return logp;
+    theta_ = transition_w(rand_, logp_grad_, inv_mass_, cholesky_mass_,
+                          macro_time_, max_nuts_depth_, max_step_halvings_,
+                          min_micro_steps_, max_error_, std::move(theta_),
+                          depth, grad_, logp_, no_op_step_size_adapter_);
+    sample_handler_.get().on_sample(theta_, logp_);
+    return logp_;
   }
-
-  /** Targets must be stable at each position. Call after target-data changes,
-   * including changes in callbacks, to force the next endpoint evaluation. */
-  void invalidate_endpoint_cache() noexcept { endpoint_valid_ = false; }
 
   /**
    * @brief  Return a constant reference the diagonal of the diagonal inverse
@@ -758,9 +727,6 @@ class WalnutsSampler {
   }
 
  private:
-  template <LogpGrad G, std::uniform_random_bit_generator R, ChainHandler C>
-  friend class AdaptiveWalnuts;
-
   /** The underlying randomizer. */
   detail::Random<RNG> rand_;
 
@@ -773,9 +739,11 @@ class WalnutsSampler {
   /** The current position. */
   Eigen::VectorXd theta_;
 
-  Eigen::VectorXd endpoint_gradient_;
-  double endpoint_logp_ = 0;
-  bool endpoint_valid_ = false;
+  /** The gradient of the log density at `theta_`. */
+  Eigen::VectorXd grad_;
+
+  /** The log density at `theta_`. */
+  double logp_;
 
   /** The diagonal of the diagonal inverse mass matrix. */
   Eigen::VectorXd inv_mass_;

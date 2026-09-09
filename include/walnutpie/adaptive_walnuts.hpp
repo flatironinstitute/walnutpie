@@ -196,9 +196,6 @@ class AdaptiveWalnuts {
    * modifed.
    * @param[in,out] handler Event handler for adaptation and sampling, stored by
    * reference and called back.
-   * Finite endpoint values are reused. Targets must be stable at each position.
-   * Call invalidate_endpoint_cache() after changing target data.
-   *
    * @param[in] logp_grad The target log density and gradient function.
    * @param[in] init_chain_cfg The initialization configuration for a single
    * chain.
@@ -223,7 +220,9 @@ class AdaptiveWalnuts {
               warmup_cfg.step_learn_rate_decay()),
         mass_estimator_(warmup_cfg, init_chain_cfg),
         min_micro_estimator_(warmup_cfg.max_macro_steps_target(),
-                             sampling_cfg.min_micro_steps()) {}
+                             sampling_cfg.min_micro_steps()) {
+    logp_grad_(theta_, logp_, grad_);
+  }
 
   /**
    * @brief Generate the next state for adaptation and the handler.
@@ -238,20 +237,16 @@ class AdaptiveWalnuts {
     Eigen::VectorXd inv_mass = mass_estimator_.inv_mass_estimate();
     Eigen::VectorXd chol_mass = inv_mass.array().inverse().sqrt().matrix();
     std::size_t depth;
-    theta_ = detail::transition_w_impl(
-        rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
-        sampling_cfg_.get().max_trajectory_doublings(),
-        sampling_cfg_.get().max_step_halvings(),
-        min_micro_estimator_.min_micro_steps(),
-        sampling_cfg_.get().max_hamiltonian_error(), std::move(theta_), depth,
-        endpoint_gradient_, endpoint_logp_, adam_,
-        endpoint_valid_ ? &endpoint_gradient_ : nullptr, endpoint_logp_);
-    mass_estimator_.observe(theta_, endpoint_gradient_, iteration_);
+    theta_ =
+        transition_w(rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
+                     sampling_cfg_.get().max_trajectory_doublings(),
+                     sampling_cfg_.get().max_step_halvings(),
+                     min_micro_estimator_.min_micro_steps(),
+                     sampling_cfg_.get().max_hamiltonian_error(),
+                     std::move(theta_), depth, grad_, logp_, adam_);
+    mass_estimator_.observe(theta_, grad_, iteration_);
     min_micro_estimator_.observe(1 << depth);
-    endpoint_valid_ =
-        std::isfinite(endpoint_logp_) && endpoint_gradient_.allFinite();
-    double logp = endpoint_logp_;
-    handler_.get().on_warmup(theta_, logp, step_size(), inv_mass);
+    handler_.get().on_warmup(theta_, logp_, step_size(), inv_mass);
     ++iteration_;
   }
 
@@ -267,21 +262,13 @@ class AdaptiveWalnuts {
    */
   WalnutsSampler<F, RNG, H> sampler() {
     handler_.get().on_warmup_complete(step_size(), inv_mass());
-    WalnutsSampler<F, RNG, H> result(
+    return WalnutsSampler<F, RNG, H>(
         rand_.rng(), handler_, logp_grad_.logp_grad_, theta_, inv_mass(),
         step_size(), sampling_cfg_.get().max_trajectory_doublings(),
         sampling_cfg_.get().max_step_halvings(),
         min_micro_estimator_.min_micro_steps(),
         sampling_cfg_.get().max_hamiltonian_error());
-    result.endpoint_gradient_ = endpoint_gradient_;
-    result.endpoint_logp_ = endpoint_logp_;
-    result.endpoint_valid_ = endpoint_valid_;
-    return result;
   }
-
-  /** Targets must be stable at each position. Call after target-data changes,
-   * including changes in callbacks, to force the next endpoint evaluation. */
-  void invalidate_endpoint_cache() noexcept { endpoint_valid_ = false; }
 
   /**
    * @brief Return the diagonal of the diagonal inverse mass matrix.
@@ -361,9 +348,11 @@ class AdaptiveWalnuts {
   /** The current state. */
   Eigen::VectorXd theta_;
 
-  Eigen::VectorXd endpoint_gradient_;
-  double endpoint_logp_ = 0;
-  bool endpoint_valid_ = false;
+  /** The gradient of the log density at `theta_`. */
+  Eigen::VectorXd grad_;
+
+  /** The log density at `theta_`. */
+  double logp_;
 
   /** The current iteration. */
   std::size_t iteration_;
