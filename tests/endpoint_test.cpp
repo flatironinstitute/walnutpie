@@ -94,40 +94,49 @@ auto sampling_config() {
       .max_step_halvings(8)
       .build();
 }
+template <typename S>
+auto draw_with_reuse(S& sampler, bool reuse = true) {
+  if (!reuse) {
+    sampler.invalidate_endpoint_cache();
+  }
+  return sampler();
+}
 struct Run {
   Bits trace;
   std::size_t calls;
+  std::mt19937_64 rng;
 };
-Run chain(int kind, unsigned seed, EndpointReuse policy, int warmup = 100) {
+Run chain(int kind, unsigned seed, bool reuse, int warmup = 100) {
   Target t{kind};
   Handler h;
   std::mt19937_64 rng(seed);
   auto init = InitChainConfig(0.2, zero(), ones());
   auto wc = WarmupConfigBuilder().build();
   auto sc = sampling_config();
-  AdaptiveWalnuts a(rng, h, t, init, wc, sc, policy);
+  AdaptiveWalnuts a(rng, h, t, init, wc, sc);
   for (int i = 0; i < warmup; ++i) {
-    a();
+    draw_with_reuse(a, reuse);
   }
   auto before = t.calls;
   auto sampler = a.sampler();
   EXPECT_EQ(before, t.calls);
   for (int i = 0; i < 100; ++i) {
-    auto lp = sampler();
+    auto lp = draw_with_reuse(sampler, reuse);
     EXPECT_EQ(std::bit_cast<std::uint64_t>(lp), h.trace.back());
   }
   EXPECT_EQ(h.warmups, warmup);
   EXPECT_EQ(h.samples, 100);
   EXPECT_EQ(h.freezes, 1);
   EXPECT_EQ(h.errors, 0);
-  return {h.trace, t.calls};
+  return {h.trace, t.calls, rng};
 }
 TEST(EndpointReuse, AnalyticParityAndCounts) {
   for (int kind = 0; kind < 3; ++kind) {
     for (unsigned seed : {17u, 20260819u}) {
-      auto off = chain(kind, seed, EndpointReuse::Disabled);
-      auto on = chain(kind, seed, EndpointReuse::Deterministic);
+      auto off = chain(kind, seed, false);
+      auto on = chain(kind, seed, true);
       EXPECT_EQ(off.trace, on.trace);
+      EXPECT_EQ(off.rng, on.rng);
       EXPECT_EQ(off.calls - on.calls, 199);
       std::cout << "endpoint kind=" << kind << " seed=" << seed
                 << " baseline=" << off.calls << " cached=" << on.calls << "\n";
@@ -135,9 +144,10 @@ TEST(EndpointReuse, AnalyticParityAndCounts) {
   }
 }
 TEST(EndpointReuse, ZeroWarmupAndColdSampler) {
-  auto off = chain(0, 17, EndpointReuse::Disabled, 0);
-  auto on = chain(0, 17, EndpointReuse::Deterministic, 0);
+  auto off = chain(0, 17, false, 0);
+  auto on = chain(0, 17, true, 0);
   EXPECT_EQ(off.trace, on.trace);
+  EXPECT_EQ(off.rng, on.rng);
   EXPECT_EQ(off.calls - on.calls, 99);
   std::size_t calls[2];
   Bits traces[2];
@@ -145,11 +155,9 @@ TEST(EndpointReuse, ZeroWarmupAndColdSampler) {
     Target t;
     Handler h;
     std::mt19937_64 rng(17);
-    WalnutsSampler s(
-        rng, h, t, zero(), ones(), 0.2, 4, 8, 1, 1.0,
-        enabled ? EndpointReuse::Deterministic : EndpointReuse::Disabled);
+    WalnutsSampler s(rng, h, t, zero(), ones(), 0.2, 4, 8, 1, 1.0);
     for (int i = 0; i < 100; ++i) {
-      s();
+      draw_with_reuse(s, enabled);
     }
     calls[enabled] = t.calls;
     traces[enabled] = h.trace;
@@ -166,18 +174,16 @@ TEST(EndpointReuse, InvalidEndpointsRetryAndRecover) {
       t.failure = failure;
       Handler h;
       std::mt19937_64 rng(17);
-      WalnutsSampler s(
-          rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0,
-          enabled ? EndpointReuse::Deterministic : EndpointReuse::Disabled);
+      WalnutsSampler s(rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0);
       for (int i = 0; i < 3; ++i) {
-        s();
+        draw_with_reuse(s, enabled);
       }
       EXPECT_EQ(t.calls, 6);
       EXPECT_EQ(h.errors, failure == 1 ? 6 : 0);
       t.failure = 0;  // invalid endpoints must not prevent retry/recovery
-      s();
+      draw_with_reuse(s, enabled);
       EXPECT_EQ(t.calls, 8);
-      s();
+      draw_with_reuse(s, enabled);
       calls[enabled] = t.calls;
       errors[enabled] = h.errors;
       traces[enabled] = h.trace;
@@ -194,11 +200,9 @@ TEST(EndpointReuse, RejectedTrajectoryKeepsFiniteEndpoint) {
     t.failure = 4;
     Handler h;
     std::mt19937_64 rng(17);
-    WalnutsSampler s(
-        rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0,
-        enabled ? EndpointReuse::Deterministic : EndpointReuse::Disabled);
+    WalnutsSampler s(rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0);
     for (int i = 0; i < 3; ++i) {
-      s();
+      draw_with_reuse(s, enabled);
     }
     EXPECT_EQ(t.calls, enabled ? 4 : 6);
     EXPECT_EQ(h.errors, 3);
@@ -216,8 +220,7 @@ TEST(EndpointReuse, InvalidationAndDefaultMutableTarget) {
     std::mt19937_64 rng(17);
     // The default constructor API remains valid.
     WalnutsSampler plain(rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0);
-    WalnutsSampler cached(rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0,
-                          EndpointReuse::Deterministic);
+    WalnutsSampler cached(rng, h, t, zero(), ones(), 0.1, 1, 1, 1, 1.0);
     h.after_sample = [&] {
       t.offset += 100;
       cached.invalidate_endpoint_cache();
@@ -226,7 +229,7 @@ TEST(EndpointReuse, InvalidationAndDefaultMutableTarget) {
       if (enabled) {
         cached();
       } else {
-        plain();
+        draw_with_reuse(plain, false);
       }
     }
     counts[enabled] = t.calls;
@@ -246,18 +249,16 @@ TEST(EndpointReuse, WarmupCallbackInvalidation) {
     auto init = InitChainConfig(0.2, zero(), ones());
     auto wc = WarmupConfigBuilder().build();
     auto sc = sampling_config();
-    AdaptiveWalnuts a(
-        rng, h, t, init, wc, sc,
-        enabled ? EndpointReuse::Deterministic : EndpointReuse::Disabled);
+    AdaptiveWalnuts a(rng, h, t, init, wc, sc);
     h.after_warmup = [&] {
       t.offset += 100;
       a.invalidate_endpoint_cache();
     };
     for (int i = 0; i < 3; ++i) {
-      a();
+      draw_with_reuse(a, enabled);
     }
     auto sampler = a.sampler();
-    sampler();
+    draw_with_reuse(sampler, enabled);
     traces[enabled] = h.trace;
     counts[enabled] = t.calls;
   }
@@ -275,10 +276,8 @@ TEST(EndpointReuse, FreezeCallbackInvalidationAndOrdering) {
     auto init = InitChainConfig(0.2, zero(), ones());
     auto wc = WarmupConfigBuilder().build();
     auto sc = sampling_config();
-    AdaptiveWalnuts a(
-        rng, h, t, init, wc, sc,
-        enabled ? EndpointReuse::Deterministic : EndpointReuse::Disabled);
-    a();
+    AdaptiveWalnuts a(rng, h, t, init, wc, sc);
+    draw_with_reuse(a, enabled);
     auto before = t.calls;
     h.after_freeze = [&] {
       EXPECT_EQ(t.calls, before);
@@ -287,7 +286,7 @@ TEST(EndpointReuse, FreezeCallbackInvalidationAndOrdering) {
     };
     auto s = a.sampler();
     EXPECT_EQ(t.calls, before);
-    s();
+    draw_with_reuse(s, enabled);
     // Each call delivers a completion event, just as upstream does.
     before = t.calls;
     auto unused = a.sampler();
@@ -304,8 +303,7 @@ TEST(EndpointReuse, CopyMoveValueOwnership) {
     Target t;
     Handler h;
     std::mt19937_64 rng(17);
-    WalnutsSampler original(rng, h, t, zero(), ones(), 0.2, 4, 8, 1, 1.0,
-                            EndpointReuse::Deterministic);
+    WalnutsSampler original(rng, h, t, zero(), ones(), 0.2, 4, 8, 1, 1.0);
     if (populated) {
       original();
     }
@@ -348,7 +346,7 @@ TEST(EndpointReuse, AdaptiveCopyMoveAndIndependentFreeze) {
     auto init = InitChainConfig(0.2, zero(), ones());
     auto wc = WarmupConfigBuilder().build();
     auto sc = sampling_config();
-    AdaptiveWalnuts a(rng, h, t, init, wc, sc, EndpointReuse::Deterministic);
+    AdaptiveWalnuts a(rng, h, t, init, wc, sc);
     if (populated) {
       a();
     }
@@ -403,29 +401,54 @@ TEST(EndpointReuse, WrongSizedCacheFallsBack) {
   std::mt19937_64 rng(17);
   detail::Random random(rng);
   detail::NoOpStepSizeAdapter adapter;
-  detail::EndpointCache cache;
-  cache.store(Eigen::VectorXd::Ones(3), 999.0);
+  Eigen::VectorXd wrong_gradient = Eigen::VectorXd::Ones(3);
   std::size_t depth;
   Eigen::VectorXd grad;
   double lp;
-  auto theta =
-      detail::transition_w_impl(random, t, ones(), ones(), 0.1, 1, 1, 1, 1.0,
-                                zero(), depth, grad, lp, adapter, &cache);
+  auto theta = detail::transition_w_impl(random, t, ones(), ones(), 0.1, 1, 1,
+                                         1, 1.0, zero(), depth, grad, lp,
+                                         adapter, &wrong_gradient, 999.0);
   EXPECT_EQ(t.calls, 2);
   EXPECT_EQ(grad.size(), theta.size());
   EXPECT_LE(lp, 0);
 }
 
-TEST(EndpointReuse, ExplicitValidityAndFiniteCache) {
-  detail::EndpointCache c;
-  EXPECT_FALSE(c.valid);
-  c.store(Eigen::VectorXd(), 0.0);
-  EXPECT_TRUE(c.valid);
-  c.store(ones(), std::numeric_limits<double>::infinity());
-  EXPECT_FALSE(c.valid);
-  c.store(
-      Eigen::VectorXd::Constant(2, std::numeric_limits<double>::quiet_NaN()),
-      0.0);
-  EXPECT_FALSE(c.valid);
+struct MutatingDensityHandler : Handler {
+  void on_sample(const Eigen::VectorXd& x, double& lp) {
+    Handler::on_sample(x, lp);
+    lp = 12345;
+  }
+  void on_warmup(const Eigen::VectorXd& x, double& lp, double step,
+                 const Eigen::VectorXd& mass) {
+    Handler::on_warmup(x, lp, step, mass);
+    lp = 12345;
+  }
+};
+TEST(EndpointReuse, CallbackDensityReferenceDoesNotChangeStoredEndpoint) {
+  Bits traces[2];
+  std::mt19937_64 states[2];
+  std::size_t counts[2];
+  for (bool reuse : {false, true}) {
+    Target target;
+    MutatingDensityHandler handler;
+    std::mt19937_64 rng(17);
+    auto init = InitChainConfig(.2, zero(), ones());
+    auto warmup = WarmupConfigBuilder().build();
+    auto config = sampling_config();
+    AdaptiveWalnuts adaptive(rng, handler, target, init, warmup, config);
+    for (int i = 0; i < 20; ++i) {
+      draw_with_reuse(adaptive, reuse);
+    }
+    auto sampler = adaptive.sampler();
+    for (int i = 0; i < 20; ++i) {
+      EXPECT_EQ(draw_with_reuse(sampler, reuse), 12345);
+    }
+    traces[reuse] = handler.trace;
+    states[reuse] = rng;
+    counts[reuse] = target.calls;
+  }
+  EXPECT_EQ(traces[0], traces[1]);
+  EXPECT_EQ(states[0], states[1]);
+  EXPECT_EQ(counts[0] - counts[1], 39);
 }
 }  // namespace
