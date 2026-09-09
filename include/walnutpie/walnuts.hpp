@@ -512,7 +512,8 @@ static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
  * @param[in] min_micro_steps The minimum number of micro steps per macro step.
  * @param[in] max_error The maximum difference in Hamiltonians.
  * @param[in] theta The current state.
- * @param[out] depth The tree depth used by the transition.
+ * @param[out] depth The number of doublings included in the final
+ * trajectory, which holds `2^depth` states.
  * @param[in,out] theta_grad The gradient of the log density at `theta` on
  * input; the gradient at the selected state on output.
  * @param[in,out] logp_pos_select The log density of `theta` on input; the
@@ -534,12 +535,12 @@ inline Eigen::VectorXd transition_w(
   auto span_accum = SpanW::from_initial_point(std::move(theta), std::move(rho),
                                               std::move(theta_grad),
                                               logp_pos_select, logp_joint);
-  for (depth = 1; depth <= max_depth; ++depth) {
-    // helper to turn runtime direction into compile-time template enum
+  depth = 0;
+  while (depth < max_depth) {
     auto expand_in_direction = [&](auto direction) -> bool {
       constexpr Direction D = direction;
       auto maybe_next_span = build_span<D>(
-          rand, logp_grad, inv_mass, step, depth - 1, max_step_halvings,
+          rand, logp_grad, inv_mass, step, depth, max_step_halvings,
           min_micro_steps, max_error, span_accum, step_size_adapter);
       if (!maybe_next_span) {
         return true;
@@ -547,6 +548,7 @@ inline Eigen::VectorXd transition_w(
       bool combined_uturn = uturn<D>(span_accum, *maybe_next_span, inv_mass);
       span_accum = combine<Update::Metropolis, D>(rand, std::move(span_accum),
                                                   std::move(*maybe_next_span));
+      ++depth;
       return combined_uturn;
     };
 
