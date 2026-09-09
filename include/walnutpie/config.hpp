@@ -696,10 +696,10 @@ class WarmupConfigBuilder {
    * @param[in] v The mass matrix estimator initial count.
    * @return This builder for chaining.
    * @throw std::invalid_argument If the initial count is not finite and
-   * positive.
+   * greater than one.
    */
   WarmupConfigBuilder& mass_init_count(double v) {
-    detail::validate_finite_positive(v, "mass_init_count");
+    detail::validate_finite_gt1(v, "mass_init_count");
     cfg_.mass_init_count_ = v;
     return *this;
   }
