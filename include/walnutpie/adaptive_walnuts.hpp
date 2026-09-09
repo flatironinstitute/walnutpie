@@ -185,17 +185,12 @@ class AdaptiveWalnuts {
   /**
    * @brief Construct an adaptive Walnuts sampler.
    *
-   * The configuration objects, the base random number generator, and
-   * the log density/gradient function are held by reference. The RNG
-   * changes state every time a random number is generated. The
-   * target depth specifies the expected Nuts tree depth, which is
-   * controlled through the minimum number of micro steps per macro
-   * step and adjusted with a mean estimator to achieve this average.
+   * The sampler copies the configuration values it needs. It holds the
+   * random number generator, event handler, and log density/gradient
+   * function by reference.
    *
-   * @param[in] rng The base random number generator, stored by reference and
-   * modifed.
-   * @param[in,out] handler Event handler for adaptation and sampling, stored by
-   * reference and called back.
+   * @param[in,out] rng The base random number generator.
+   * @param[in,out] handler Event handler for adaptation and sampling.
    * @param[in] logp_grad The target log density and gradient function.
    * @param[in] init_chain_cfg The initialization configuration for a single
    * chain.
@@ -206,8 +201,7 @@ class AdaptiveWalnuts {
                   const InitChainConfig& init_chain_cfg,
                   const WarmupConfig& warmup_cfg,
                   const SamplingConfig& sampling_cfg)
-      : warmup_cfg_(std::cref(warmup_cfg)),
-        sampling_cfg_(std::cref(sampling_cfg)),
+      : sampling_cfg_(sampling_cfg),
         rand_(rng),
         handler_(handler),
         logp_grad_(logp_grad, handler),
@@ -239,11 +233,11 @@ class AdaptiveWalnuts {
     std::size_t depth;
     theta_ =
         transition_w(rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
-                     sampling_cfg_.get().max_trajectory_doublings(),
-                     sampling_cfg_.get().max_step_halvings(),
+                     sampling_cfg_.max_trajectory_doublings(),
+                     sampling_cfg_.max_step_halvings(),
                      min_micro_estimator_.min_micro_steps(),
-                     sampling_cfg_.get().max_hamiltonian_error(),
-                     std::move(theta_), depth, grad_, logp_, adam_);
+                     sampling_cfg_.max_hamiltonian_error(), std::move(theta_),
+                     depth, grad_, logp_, adam_);
     mass_estimator_.observe(theta_, grad_, iteration_);
     min_micro_estimator_.observe(1 << depth);
     handler_.get().on_warmup(theta_, logp_, step_size(), inv_mass);
@@ -264,10 +258,10 @@ class AdaptiveWalnuts {
     handler_.get().on_warmup_complete(step_size(), inv_mass());
     return WalnutsSampler<F, RNG, H>(
         rand_.rng(), handler_, logp_grad_.logp_grad_, theta_, inv_mass(),
-        step_size(), sampling_cfg_.get().max_trajectory_doublings(),
-        sampling_cfg_.get().max_step_halvings(),
+        step_size(), sampling_cfg_.max_trajectory_doublings(),
+        sampling_cfg_.max_step_halvings(),
         min_micro_estimator_.min_micro_steps(),
-        sampling_cfg_.get().max_hamiltonian_error());
+        sampling_cfg_.max_hamiltonian_error());
   }
 
   /**
@@ -330,11 +324,8 @@ class AdaptiveWalnuts {
   std::size_t iter() const noexcept { return iteration_; }
 
  private:
-  /** The warmup configuration. */
-  std::reference_wrapper<const WarmupConfig> warmup_cfg_;
-
   /** The Walnuts sampler configuration. */
-  std::reference_wrapper<const SamplingConfig> sampling_cfg_;
+  SamplingConfig sampling_cfg_;
 
   /** The random number generator required for Nuts. */
   detail::Random<RNG> rand_;
