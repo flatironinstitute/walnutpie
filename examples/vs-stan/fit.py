@@ -12,10 +12,13 @@ from cmdstanpy import CmdStanModel
 warnings.simplefilter(action="ignore", category=FutureWarning)
 cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
-SEED=5678
+SEED=598333
+MIN_ITER=1000
+ITER=1000
+NUM_CHAINS=4
 
 STAN_JSON_PAIRS = [
-    ("funnel/funnel.stan", "funnel/funnel.json"),
+    # ("funnel/funnel.stan", "funnel/funnel.json"),
     ("multilevel_regression/multilevel_regression.stan", "multilevel_regression/multilevel_regression.json"),
     ("multilevel_regression/multilevel_regression_logit.stan", "multilevel_regression/multilevel_regression_logit.json"),
     ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_1.json"),
@@ -100,21 +103,21 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
                                  seed=seed)
     return walnutpie.walnuts_stan(
         model,
-        num_chains=4,
+        num_chains=NUM_CHAINS,
         seed=seed,
-        min_warmup_iter=1_000,
-        max_warmup_iter=1_000,
-        min_sampling_iter=10_000,
-        max_sampling_iter=10_000,
+        min_warmup_iter=MIN_ITER,
+        max_warmup_iter=ITER,
+        min_sampling_iter=MIN_ITER,
+        max_sampling_iter=ITER,
         max_trajectory_doublings=10, # 5 Walnutpie
         max_step_halvings=5, # 5 Walnutpie
         max_macro_steps_target=16,  # 16.0 Walnutpie
           init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
           step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
-        max_hamiltonian_error=0.5,  # 0.5 Walnutpie, 0.5 Good, infty Nuts
+        max_hamiltonian_error=1,  # 0.5 Walnutpie, 0.5 Good, infty Nuts
         mass_init_count=4,  # 4.0 Walnutpie, 4.0 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
-        step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.8 Good
+        step_accept_rate_target=0.95,  # 0.8 Walnutpie, 0.8 Good
         step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
         step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.9 Good
         step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.999 Good
@@ -125,8 +128,8 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         refresh=0)
 
 
-def fit_stan_one(stan_file, data_file, seed=SEED, num_chains=4,
-                 iter_warmup=1000, iter_sampling=10_000, **sample_kwargs):
+def fit_stan_one(stan_file, data_file, seed=SEED, num_chains=NUM_CHAINS,
+                 iter_warmup=MIN_ITER, iter_sampling=ITER, **sample_kwargs):
     model = CmdStanModel(stan_file=str(stan_file))
     csp_fit = model.sample(data=str(data_file), chains=num_chains,
                            parallel_chains=num_chains, iter_warmup=iter_warmup,

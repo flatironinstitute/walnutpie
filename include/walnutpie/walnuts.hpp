@@ -334,7 +334,7 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
     logp_next = logp_pos_next + logp_momentum(rho_next, inv_mass);
     if (num_steps == min_micro_steps) {
       double min_accept = std::exp(-std::fabs(logp - logp_next));
-      adapt_handler(min_accept);
+      adapt_handler(std::isfinite(min_accept) ? min_accept : 0.0);
     }
     if (std::fabs(logp - logp_next) <= max_error) {
       return reversible(logp_grad, inv_mass, step, num_steps, min_micro_steps,
