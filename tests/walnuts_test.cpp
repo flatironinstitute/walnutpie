@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 #include <walnutpie/adam.hpp>
+#include <walnutpie/adapt.hpp>
+#include <walnutpie/config.hpp>
 #include <walnutpie/walnuts.hpp>
 
 #include <cmath>
+#include <deque>
 #include <limits>
+#include <stdexcept>
 #include <vector>
 
 namespace {
@@ -96,5 +100,30 @@ TEST(MacroStepAdaptation, ConservedEnergyKeepsUnitAcceptance) {
   RecordingAdapter adapter;
   EXPECT_TRUE(take_macro_step<Direction::Forward>(target, adapter));
   EXPECT_EQ(adapter.observed, std::vector<double>{1.0});
+}
+
+TEST(ControllerLoop, RejectsLowStepWhenHighStepsAreWithinTolerance) {
+  struct StopPolling {
+    void throw_if_interrupted() const {
+      throw std::runtime_error("not converged");
+    }
+  } interrupt;
+  auto init = walnutpie::InitConfigBuilder(3, 1).build();
+  auto warmup_cfg = walnutpie::WarmupConfigBuilder()
+                        .step_size_converge_tol(0.1)
+                        .build();
+  std::deque<walnutpie::detail::SpscBuffer<walnutpie::detail::AdaptSnapshot>>
+      buffers;
+  walnutpie::detail::AdaptSnapshot snap(1);
+  snap.iter = warmup_cfg.min_iter();
+  snap.log_mass.setZero();
+  snap.mass.setOnes();
+  for (double step : {0.8, 1.05, 1.05}) {
+    snap.log_step = std::log(step);
+    buffers.emplace_back(snap);
+  }
+  EXPECT_THROW(
+      walnutpie::detail::controller_loop(buffers, interrupt, init, warmup_cfg),
+      std::runtime_error);
 }
 }  // namespace
