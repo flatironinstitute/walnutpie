@@ -617,7 +617,9 @@ TEST(WarmupConfigBuilder, MassInitCountSetsCorrectly) {
 }
 
 TEST(WarmupConfigBuilder, MassInitCountThrowsOnBadValues) {
-  for (auto x : inf_nan_neg_zero()) {
+  std::vector<double> bad = inf_nan_neg_zero();
+  bad.insert(bad.end(), {0.5, 1.0});
+  for (auto x : bad) {
     walnutpie::WarmupConfigBuilder b;
     EXPECT_THROW(b.mass_init_count(x), std::invalid_argument);
   }

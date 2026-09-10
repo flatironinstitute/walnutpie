@@ -220,7 +220,9 @@ class AdaptiveWalnuts {
               warmup_cfg.step_learn_rate_decay()),
         mass_estimator_(warmup_cfg, init_chain_cfg),
         min_micro_estimator_(warmup_cfg.max_macro_steps_target(),
-                             sampling_cfg.min_micro_steps()) {}
+                             sampling_cfg.min_micro_steps()) {
+    logp_grad_(theta_, logp_, grad_);
+  }
 
   /**
    * @brief Generate the next state for adaptation and the handler.
@@ -234,8 +236,6 @@ class AdaptiveWalnuts {
   void operator()() {
     Eigen::VectorXd inv_mass = mass_estimator_.inv_mass_estimate();
     Eigen::VectorXd chol_mass = inv_mass.array().inverse().sqrt().matrix();
-    Eigen::VectorXd grad_select;
-    double logp_select;
     std::size_t depth;
     theta_ =
         transition_w(rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
@@ -243,10 +243,10 @@ class AdaptiveWalnuts {
                      sampling_cfg_.get().max_step_halvings(),
                      min_micro_estimator_.min_micro_steps(),
                      sampling_cfg_.get().max_hamiltonian_error(),
-                     std::move(theta_), depth, grad_select, logp_select, adam_);
-    mass_estimator_.observe(theta_, grad_select, iteration_);
+                     std::move(theta_), depth, grad_, logp_, adam_);
+    mass_estimator_.observe(theta_, grad_, iteration_);
     min_micro_estimator_.observe(1 << depth);
-    handler_.get().on_warmup(theta_, logp_select, step_size(), inv_mass);
+    handler_.get().on_warmup(theta_, logp_, step_size(), inv_mass);
     ++iteration_;
   }
 
@@ -347,6 +347,12 @@ class AdaptiveWalnuts {
 
   /** The current state. */
   Eigen::VectorXd theta_;
+
+  /** The gradient of the log density at `theta_`. */
+  Eigen::VectorXd grad_;
+
+  /** The log density at `theta_`. */
+  double logp_;
 
   /** The current iteration. */
   std::size_t iteration_;
