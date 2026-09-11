@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <limits>
+#include <random>
 #include <vector>
 
 namespace {
@@ -30,6 +31,23 @@ bool take_macro_step(const F& logp_grad, A& adapter,
   return walnutpie::detail::macro_step<D>(
       logp_grad, Eigen::VectorXd::Ones(1), 1.0, max_halvings, 1, 1.0, span,
       theta, rho, grad, logp_pos, logp, adapter);
+}
+
+template <typename F>
+std::size_t transition_depth(const F& target, std::size_t max_depth,
+                             double step = 0.05) {
+  std::mt19937 rng(7);
+  walnutpie::detail::Random<std::mt19937> rand(rng);
+  walnutpie::detail::NoOpStepSizeAdapter adapter;
+  Eigen::VectorXd theta = Eigen::VectorXd::Zero(2);
+  Eigen::VectorXd grad(2);
+  double logp;
+  target(theta, logp, grad);
+  std::size_t depth;
+  walnutpie::detail::transition_w(
+      rand, target, Eigen::VectorXd::Ones(2), Eigen::VectorXd::Ones(2), step,
+      max_depth, 5, 1, 1.0, std::move(theta), depth, grad, logp, adapter);
+  return depth;
 }
 
 TEST(MacroStepAdaptation, NonfiniteLogDensityIsZeroAcceptanceInBothDirections) {
@@ -96,5 +114,20 @@ TEST(MacroStepAdaptation, ConservedEnergyKeepsUnitAcceptance) {
   RecordingAdapter adapter;
   EXPECT_TRUE(take_macro_step<Direction::Forward>(target, adapter));
   EXPECT_EQ(adapter.observed, std::vector<double>{1.0});
+}
+
+TEST(TransitionDepth, ReportsIncludedDoublings) {
+  auto gaussian = [](const Eigen::VectorXd& x, double& lp, Eigen::VectorXd& g) {
+    lp = -0.5 * x.squaredNorm();
+    g = -x;
+  };
+  for (std::size_t max_depth : {std::size_t{1}, std::size_t{3}}) {
+    EXPECT_EQ(transition_depth(gaussian, max_depth), max_depth);
+  }
+  auto nonfinite = [](const Eigen::VectorXd&, double& lp, Eigen::VectorXd& g) {
+    lp = -std::numeric_limits<double>::infinity();
+    g.setZero();
+  };
+  EXPECT_EQ(transition_depth(nonfinite, 4), 0u);
 }
 }  // namespace
