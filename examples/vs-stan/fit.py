@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+import json
 import time
 import logging
 import warnings
@@ -7,6 +8,7 @@ import numpy as np
 import bridgestan
 import walnutpie
 import cmdstanpy
+import nutpie
 from cmdstanpy import CmdStanModel
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
@@ -14,9 +16,11 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
 SEED = 598333
 MIN_ITER = 1000
-ITER = 100
+ITER = 1000
 NUM_CHAINS = 4
 METRIC_PER_LINE = 100
+NUTPIE_TARGET_ACCEPT = 0.8
+NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
     ("time-series/arK.stan", "time-series/arK.json"),
@@ -25,25 +29,28 @@ STAN_JSON_PAIRS = [
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
     (
-       "multilevel_regression/multilevel_regression.stan",
-       "multilevel_regression/multilevel_regression.json",
+        "multilevel_regression/multilevel_regression.stan",
+        "multilevel_regression/multilevel_regression.json",
     ),
     (
-       "multilevel_regression/multilevel_regression_logit.stan",
-       "multilevel_regression/multilevel_regression_logit.json",
+        "multilevel_regression/multilevel_regression_logit.stan",
+        "multilevel_regression/multilevel_regression_logit.json",
     ),
     (
-       "measurement_error/measurement_error.stan",
-       "measurement_error/measurement_error_1.json",
+        "measurement_error/measurement_error.stan",
+        "measurement_error/measurement_error_1.json",
     ),
-    ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_5.json"),
+    (
+        "measurement_error/measurement_error.stan",
+        "measurement_error/measurement_error_5.json",
+    ),
     (
         "hierarchical_matrix/hierarchical_matrix_1.stan",
         "hierarchical_matrix/hierarchical_matrix.json",
     ),
     (
-       "hierarchical_matrix/hierarchical_matrix_2.stan",
-       "hierarchical_matrix/hierarchical_matrix.json",
+        "hierarchical_matrix/hierarchical_matrix_2.stan",
+        "hierarchical_matrix/hierarchical_matrix.json",
     ),
     ("funnel/funnel.stan", "funnel/funnel.json"),
 ]
@@ -58,6 +65,20 @@ class StanChain:
             stepsize=stepsize, inv_metric=inv_metric, warmup_draws=None
         )
         self.cmdstan = cmdstan
+
+    def __len__(self):
+        return self.data.shape[0]
+
+
+class NutpieChain:
+    def __init__(self, data, names, stepsize, inv_metric=None, nutpie_result=None):
+        self.data = data
+        self.raw_parameters = names
+        self.parameters = names
+        self.warmup = SimpleNamespace(
+            stepsize=stepsize, inv_metric=inv_metric, warmup_draws=None
+        )
+        self.nutpie = nutpie_result
 
     def __len__(self):
         return self.data.shape[0]
@@ -88,25 +109,33 @@ def summarize(fit, names=None):
 
 def print_summary(name, fit, names, cols, s, top=None):
     print(f"\n=== {name} ===")
-    print(f"chains={len(fit)}  draws/chain={[np.asarray(c.data).shape[0] for c in fit]}"
-          f"  total # draws={sum(len(c.data) for c in fit)}"
-          f"  # parameters={s._stacked.shape[0]}")
+    print(
+        f"chains={len(fit)}  draws/chain={[np.asarray(c.data).shape[0] for c in fit]}"
+        f"  total # draws={sum(len(c.data) for c in fit)}"
+        f"  # parameters={s._stacked.shape[0]}"
+    )
     print(f"{'param':<24}{'mean':>12}{'sd':>12}{'mcse':>10}{'ess':>10}{'rhat':>8}")
     idx = range(len(names)) if top is None else range(min(top, len(names)))
     for i in idx:
-        print(f"{names[i]:<24}{cols['mean'][i]:>12.2f}{cols['sd'][i]:>12.2f}"
-              f"{cols['mcse'][i]:>10.3f}{cols['ess'][i]:>10.0f}{cols['rhat'][i]:>8.2f}")
+        print(
+            f"{names[i]:<24}{cols['mean'][i]:>12.2f}{cols['sd'][i]:>12.2f}"
+            f"{cols['mcse'][i]:>10.3f}{cols['ess'][i]:>10.0f}{cols['rhat'][i]:>8.2f}"
+        )
     ok = np.isfinite(cols["rhat"]) & np.isfinite(cols["ess"]) & (cols["sd"] > 0)
     live = np.flatnonzero(ok)
     worst = int(live[np.argmax(cols["rhat"][live])])
     least = int(live[np.argmin(cols["ess"][live])])
     most = int(live[np.argmax(cols["ess"][live])])
     q = np.quantile(cols["ess"][live], [0.0, 0.1, 0.5, 0.9, 1.0])
-    print(f"max rhat: {cols['rhat'][worst]:.3f} ({names[worst]})"
-          f"{'' if ok.all() else f'  [{(~ok).sum()} constant/undefined columns excluded]'}")
-    print(f"ess quantiles over {live.size} parameters: "
-          f"min {q[0]:.0f} ({names[least]})  10% {q[1]:.0f}  50% {q[2]:.0f}  "
-          f"90% {q[3]:.0f}  max {q[4]:.0f} ({names[most]})")
+    print(
+        f"max rhat: {cols['rhat'][worst]:.3f} ({names[worst]})"
+        f"{'' if ok.all() else f'  [{(~ok).sum()} constant/undefined columns excluded]'}"
+    )
+    print(
+        f"ess quantiles over {live.size} parameters: "
+        f"min {q[0]:.0f} ({names[least]})  10% {q[1]:.0f}  50% {q[2]:.0f}  "
+        f"90% {q[3]:.0f}  max {q[4]:.0f} ({names[most]})"
+    )
 
 
 def chain_inv_metric(chain):
@@ -117,22 +146,25 @@ def chain_inv_metric(chain):
     return np.diag(m) if m.ndim == 2 else m.ravel()
 
 
-def print_inv_metrics(fit, per_line=METRIC_PER_LINE):
+def print_inv_metrics(fit, pkg_name, per_line=METRIC_PER_LINE):
     ms = [chain_inv_metric(c) for c in fit]
     if all(m is None for m in ms):
         print("inverse metric: not available")
         return
     print("inverse metric diagonal (unconstrained scale):")
     for i, m in enumerate(ms):
+        if pkg_name == "Nutpie":
+            m = np.array(m)**2
         if m is None:
             print(f"  chain {i}: unavailable")
             continue
         print(
-            f"  chain {i}  n={m.size}  min {m.min():.2f}"
-            f"  median {np.median(m):.2f}  max {m.max():.2f}"
+            f"  chain {i}  n={m.size}  min {m.min():.4f}"
+            f"  median {np.median(m):.4f}  max {m.max():.4f}"
         )
-        for j in range(0, m.size, per_line):
-            print(f"    {j:>5}: " + " ".join(f"{v:8.3f}" for v in m[j : j + per_line]))
+        # Uncomment to print sqrt(mass matrices)
+        # for j in range(0, m.size, per_line):
+        #     print(f"    {j:>5}: " + " ".join(f"{v:8.3f}" for v in m[j : j + per_line]))
 
 
 def print_fit(fit, stan_file, pkg_name, wall=None):
@@ -140,9 +172,11 @@ def print_fit(fit, stan_file, pkg_name, wall=None):
     names, cols, s = summarize(fit, flat_names(fit))
     print_summary(pathlib.Path(stan_file).name, fit, names, cols, s, top=5)
     print("adapted step sizes:", [f"{c.warmup.stepsize:6.4f}" for c in fit])
-    print_inv_metrics(fit)
+    print_inv_metrics(fit, pkg_name)
     if getattr(fit[0], "cmdstan", None) is not None:
         print("diagnostics:", stan_diagnostics(fit))
+    if getattr(fit[0], "nutpie", None) is not None:
+        print("diagnostics:", nutpie_diagnostics(fit))
 
 
 def stan_diagnostics(fit):
@@ -155,6 +189,116 @@ def stan_diagnostics(fit):
         treedepth_at_max=float((td >= td.max()).mean()),
     )
 
+
+def nutpie_group(result, name):
+    node = None
+    try:
+        node = result[name]
+    except (KeyError, TypeError, IndexError):
+        node = getattr(result, name, None)
+    if node is None:
+        return None
+    to_dataset = getattr(node, "to_dataset", None)
+    return to_dataset() if callable(to_dataset) else node
+
+
+def nutpie_stat(stats, name):
+    if stats is None or name not in stats:
+        return None
+    return np.asarray(stats[name].values, dtype=float)
+
+
+def nutpie_diagnostics(fit):
+    stats = nutpie_group(fit[0].nutpie, "sample_stats")
+    div = nutpie_stat(stats, "diverging")
+    depth = nutpie_stat(stats, "depth")
+    if depth is None:
+        depth = nutpie_stat(stats, "tree_depth")
+    out = {}
+    if div is not None:
+        out["divergences"] = int(np.nansum(div))
+    if depth is not None:
+        out["treedepth_median"] = float(np.median(depth))
+        out["treedepth_max"] = float(np.max(depth))
+        out["treedepth_at_max"] = float((depth >= np.max(depth)).mean())
+    return out
+
+
+def nutpie_draws(ds):
+    names, blocks = [], []
+    for v in ds.data_vars:
+        a = np.asarray(ds[v].values, dtype=float)
+        flat = a.reshape(a.shape[0], a.shape[1], -1)
+        dims = a.shape[2:]
+        if not dims:
+            names.append(str(v))
+        else:
+            for k in range(flat.shape[2]):
+                idx = np.unravel_index(k, dims)
+                names.append(f"{v}[{','.join(str(i + 1) for i in idx)}]")
+        blocks.append(flat)
+    data = np.concatenate(blocks, axis=2)
+    return data, names
+
+def nutpie_last_finite(result, name):
+    arrs = []
+    for grp in ("warmup_sample_stats", "sample_stats"):
+        a = nutpie_stat(nutpie_group(result, grp), name)
+        if a is not None:
+            arrs.append(a)
+    if not arrs:
+        return None
+    a = np.concatenate(arrs, axis=1)
+    out = []
+    for c in range(a.shape[0]):
+        rows = a[c]
+        finite = np.flatnonzero(np.all(np.isfinite(rows.reshape(rows.shape[0], -1)), axis=1))
+        out.append(rows[finite[-1]] if finite.size else None)
+    return out
+
+
+def nutpie_metrics(result):
+    m = nutpie_last_finite(result, "mass_matrix_inv")
+    if m is not None and any(x is not None for x in m):
+        return m
+    s = nutpie_last_finite(result, "mass_matrix_stds")
+    return None if s is None else [None if x is None else np.asarray(x) ** 2 for x in s]
+
+
+def fit_nutpie_one(stan_file, data_file, seed=SEED, num_chains=NUM_CHAINS,
+                   tune=ITER, draws=ITER):
+    compiled = nutpie.compile_stan_model(filename=str(stan_file), cache=True)
+    with open(data_file) as f:
+        compiled = compiled.with_data(**json.load(f))
+    result = nutpie.sample(
+        compiled,
+        draws=draws,
+        tune=tune,
+        chains=num_chains,
+        cores=num_chains,
+        seed=seed,
+        save_warmup=True,
+        progress_bar=False,
+        adaptation=NUTPIE_ADAPTATION,
+        initial_step=0.1,
+        target_accept=NUTPIE_TARGET_ACCEPT,
+        maxdepth=10,
+        store_mass_matrix=True,
+    )
+    posterior = nutpie_group(result, "posterior")
+    data, names = nutpie_draws(posterior)
+    step = nutpie_last_finite(result, "step_size")
+    metrics = nutpie_metrics(result)
+    return [
+        NutpieChain(
+            np.ascontiguousarray(data[c]),
+            names,
+            float(step[c]) if step is not None and step[c] is not None else float("nan"),
+            metrics[c] if metrics is not None else None,
+            result,
+        )
+        for c in range(data.shape[0])
+    ]
 
 def fit_walnutpie_one(stan_file, data_file, seed=SEED):
     model = bridgestan.StanModel(
@@ -172,21 +316,21 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         max_warmup_iter=ITER,
         min_sampling_iter=MIN_ITER,
         max_sampling_iter=ITER,
-        max_trajectory_doublings=10,  # 5 Walnutpie
-        max_step_halvings=5,  # 5 Walnutpie
+        max_trajectory_doublings=10,  # 5 Walnutpie, 10 Good
+        max_step_halvings=5,  # 5 Walnutpie, 5 good, 
         max_macro_steps_target=16,  # 16.0 Walnutpie, 16 Good
         init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
         step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
         max_hamiltonian_error=0.5,  # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
-        mass_init_count=4,  # 4.0 Walnutpie, 4 Good
+        mass_init_count=1.01,  # 4.0 Walnutpie, 1.01 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
-        step_accept_rate_target=0.95,  # 0.8 Walnutpie, 0.9 to 0.95 Good
-        step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.025 Good
-        step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.9 Good
-        step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.999 Good
-        step_stabilization=0.0001,  # 1e-7 Adam, 0.0001 Walnutpie
-        step_learn_rate_decay=0.5,  # 0.5 Walnutpie
-        init_inv_metric=np.ones(model.param_unc_num()),
+        step_accept_rate_target=0.9,  # 0.8 Walnutpie, 0.9 Good
+        step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
+        step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
+        step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
+        step_stabilization=0.0001,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
+        step_learn_rate_decay=0.5,  # 0.5 Walnutpie, 0.5 Good
+        # init_inv_metric=np.ones(model.param_unc_num()),
         save_inv_metric=True,
         refresh=0,
     )
@@ -256,4 +400,8 @@ if __name__ == "__main__":
         t0 = time.perf_counter()
         fit_csp = fit_stan_one(stan_path, json_path)
         print_fit(fit_csp, stan_path, "CmdStanPy", time.perf_counter() - t0)
+
+        t0 = time.perf_counter()
+        fit_ntp = fit_nutpie_one(stan_path, json_path)
+        print_fit(fit_ntp, stan_path, "Nutpie", time.perf_counter() - t0)
     print("")
