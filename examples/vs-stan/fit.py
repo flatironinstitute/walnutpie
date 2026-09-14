@@ -14,35 +14,38 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
 SEED = 598333
 MIN_ITER = 1000
-ITER = 1000
+ITER = 100
 NUM_CHAINS = 4
-METRIC_PER_LINE = 10
+METRIC_PER_LINE = 100
 
 STAN_JSON_PAIRS = [
+    ("time-series/arK.stan", "time-series/arK.json"),
+    ("time-series/arma11.stan", "time-series/arma.json"),
+    ("time-series/garch11.stan", "time-series/garch.json"),
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
     (
-        "multilevel_regression/multilevel_regression.stan",
-        "multilevel_regression/multilevel_regression.json",
+       "multilevel_regression/multilevel_regression.stan",
+       "multilevel_regression/multilevel_regression.json",
     ),
     (
-        "multilevel_regression/multilevel_regression_logit.stan",
-        "multilevel_regression/multilevel_regression_logit.json",
+       "multilevel_regression/multilevel_regression_logit.stan",
+       "multilevel_regression/multilevel_regression_logit.json",
     ),
     (
-        "measurement_error/measurement_error.stan",
-        "measurement_error/measurement_error_1.json",
+       "measurement_error/measurement_error.stan",
+       "measurement_error/measurement_error_1.json",
     ),
-    ### ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_5.json"),
+    ("measurement_error/measurement_error.stan", "measurement_error/measurement_error_5.json"),
     (
         "hierarchical_matrix/hierarchical_matrix_1.stan",
         "hierarchical_matrix/hierarchical_matrix.json",
     ),
     (
-        "hierarchical_matrix/hierarchical_matrix_2.stan",
-        "hierarchical_matrix/hierarchical_matrix.json",
+       "hierarchical_matrix/hierarchical_matrix_2.stan",
+       "hierarchical_matrix/hierarchical_matrix.json",
     ),
-    ### ("funnel/funnel.stan", "funnel/funnel.json"),
+    ("funnel/funnel.stan", "funnel/funnel.json"),
 ]
 
 
@@ -85,27 +88,25 @@ def summarize(fit, names=None):
 
 def print_summary(name, fit, names, cols, s, top=None):
     print(f"\n=== {name} ===")
-    print(
-        f"chains={len(fit)}  draws/chain={[np.asarray(c.data).shape[0] for c in fit]}"
-        f"  total # draws={sum(len(c.data) for c in fit)}"
-        f"  # parameters={s._stacked.shape[0]}"
-    )
+    print(f"chains={len(fit)}  draws/chain={[np.asarray(c.data).shape[0] for c in fit]}"
+          f"  total # draws={sum(len(c.data) for c in fit)}"
+          f"  # parameters={s._stacked.shape[0]}")
     print(f"{'param':<24}{'mean':>12}{'sd':>12}{'mcse':>10}{'ess':>10}{'rhat':>8}")
     idx = range(len(names)) if top is None else range(min(top, len(names)))
     for i in idx:
-        print(
-            f"{names[i]:<24}{cols['mean'][i]:>12.2f}{cols['sd'][i]:>12.2f}"
-            f"{cols['mcse'][i]:>10.3f}{cols['ess'][i]:>10.0f}{cols['rhat'][i]:>8.2f}"
-        )
+        print(f"{names[i]:<24}{cols['mean'][i]:>12.2f}{cols['sd'][i]:>12.2f}"
+              f"{cols['mcse'][i]:>10.3f}{cols['ess'][i]:>10.0f}{cols['rhat'][i]:>8.2f}")
     ok = np.isfinite(cols["rhat"]) & np.isfinite(cols["ess"]) & (cols["sd"] > 0)
     live = np.flatnonzero(ok)
     worst = int(live[np.argmax(cols["rhat"][live])])
     least = int(live[np.argmin(cols["ess"][live])])
-    print(
-        f"max rhat: {cols['rhat'][worst]:.3f} ({names[worst]});  "
-        f"min ess: {cols['ess'][least]:.0f} ({names[least]})"
-        f"{'' if ok.all() else f'  [{(~ok).sum()} constant/undefined columns excluded]'}"
-    )
+    most = int(live[np.argmax(cols["ess"][live])])
+    q = np.quantile(cols["ess"][live], [0.0, 0.1, 0.5, 0.9, 1.0])
+    print(f"max rhat: {cols['rhat'][worst]:.3f} ({names[worst]})"
+          f"{'' if ok.all() else f'  [{(~ok).sum()} constant/undefined columns excluded]'}")
+    print(f"ess quantiles over {live.size} parameters: "
+          f"min {q[0]:.0f} ({names[least]})  10% {q[1]:.0f}  50% {q[2]:.0f}  "
+          f"90% {q[3]:.0f}  max {q[4]:.0f} ({names[most]})")
 
 
 def chain_inv_metric(chain):
@@ -131,7 +132,7 @@ def print_inv_metrics(fit, per_line=METRIC_PER_LINE):
             f"  median {np.median(m):.2f}  max {m.max():.2f}"
         )
         for j in range(0, m.size, per_line):
-            print(f"    {j:>5}: " + " ".join(f"{v:7.2f}" for v in m[j : j + per_line]))
+            print(f"    {j:>5}: " + " ".join(f"{v:8.3f}" for v in m[j : j + per_line]))
 
 
 def print_fit(fit, stan_file, pkg_name, wall=None):
@@ -173,19 +174,19 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         max_sampling_iter=ITER,
         max_trajectory_doublings=10,  # 5 Walnutpie
         max_step_halvings=5,  # 5 Walnutpie
-        max_macro_steps_target=16,  # 16.0 Walnutpie
+        max_macro_steps_target=16,  # 16.0 Walnutpie, 16 Good
         init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
         step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
-        max_hamiltonian_error=1,  # 0.5 Walnutpie, 0.5 Good, infty Nuts
-        mass_init_count=4,  # 4.0 Walnutpie, 4.0 Good
+        max_hamiltonian_error=0.5,  # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
+        mass_init_count=4,  # 4.0 Walnutpie, 4 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
-        step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.8 Good
-        step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
+        step_accept_rate_target=0.95,  # 0.8 Walnutpie, 0.9 to 0.95 Good
+        step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.025 Good
         step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.9 Good
         step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.999 Good
         step_stabilization=0.0001,  # 1e-7 Adam, 0.0001 Walnutpie
         step_learn_rate_decay=0.5,  # 0.5 Walnutpie
-        # init_inv_metric=np.ones(model.param_unc_num()),
+        init_inv_metric=np.ones(model.param_unc_num()),
         save_inv_metric=True,
         refresh=0,
     )
@@ -206,7 +207,7 @@ def fit_stan_one(
     data_file,
     seed=SEED,
     num_chains=NUM_CHAINS,
-    iter_warmup=MIN_ITER,
+    iter_warmup=ITER,
     iter_sampling=ITER,
     **sample_kwargs,
 ):
