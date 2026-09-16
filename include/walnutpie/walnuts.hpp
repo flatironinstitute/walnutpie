@@ -194,9 +194,9 @@ static std::tuple<T&, T&> order_forward_backward(T&& x1, T&& x2) {
  * @param[in] inv_mass The inverse mass matrix to determine distances.
  * @return `true` if there is a U-turn between the ends of the ordered spans.
  */
-inline bool uturn(const Eigen::VectorXd& inv_mass_rho,
-                     const Eigen::VectorXd& p_beg, const Eigen::VectorXd& p_end,
-                     const Eigen::VectorXd& rho) {
+inline bool uturn(const Eigen::VectorXd& inv_mass,
+		  const Eigen::VectorXd& p_beg, const Eigen::VectorXd& p_end,
+		  const Eigen::VectorXd& rho) {
   Eigen::VectorXd inv_mass_rho = (inv_mass.array() * rho.array()).matrix();
   return inv_mass_rho.dot(p_beg) <= 0.0
     || inv_mass_rho.dot(p_end) <= 0.0;
@@ -207,11 +207,17 @@ static bool uturn(const SpanW& span1, const SpanW& span2,
                   const Eigen::VectorXd& inv_mass) {
   auto [bk, fw] = order_forward_backward<D>(span1, span2);
   Eigen::VectorXd rho = bk.rho_sum_ + fw.rho_sum_;
-  if (uturn(inv_mass, bk.rho_bk_, fw.rho_fw_, scratch)) return true;
+  if (uturn(inv_mass, bk.rho_bk_, fw.rho_fw_, rho)) {
+    return true;
+  }
   rho = bk.rho_sum_ + fw.rho_bk_;
-  if (uturn(inv_mass, bk.rho_bk_, fw.rho_bk_, scratch)) return true;
+  if (uturn(inv_mass, bk.rho_bk_, fw.rho_bk_, rho)) {
+    return true;
+  }
   rho = bk.rho_fw_ + fw.rho_sum_;
-  if (uturn(inv_mass, bk.rho_fw_, fw.rho_fw_, scratch)) return true;
+  if (uturn(inv_mass, bk.rho_fw_, fw.rho_fw_, rho)) {
+    return true;
+  }
   return false;
 }
 
