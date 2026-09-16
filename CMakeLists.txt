@@ -18,6 +18,10 @@ option(WALNUTPIE_BUILD_EXAMPLES "Build the example targets for the library" ON)
 option(WALNUTPIE_BUILD_TESTS "Build the test targets for the library" OFF)
 option(WALNUTPIE_USE_MIMALLOC "Statically link mimalloc" OFF)
 option(WALNUTPIE_COVERAGE "Enable source-based test coverage instrumentation" OFF)
+option(WALNUTPIE_NATIVE "Optimize for the host CPU (non-portable binaries)" OFF)
+if(WALNUTPIE_NATIVE)
+  add_compile_options(-O3 -mcpu=native -ffp-contract=fast)
+endif()
 
 ##########################
 ## Global Dependencies  ##
@@ -41,6 +45,7 @@ if(WALNUTPIE_USE_MIMALLOC)
             mimalloc
             GIT_REPOSITORY https://github.com/microsoft/mimalloc.git
             GIT_TAG ${WALNUTPIE_MIMALLOC_TAG}
+            EXCLUDE_FROM_ALL
     )
     FetchContent_MakeAvailable(mimalloc)
 endif()
@@ -71,6 +76,7 @@ target_link_libraries(walnutpie INTERFACE Eigen3::Eigen)
 
 if (WALNUTPIE_USE_MIMALLOC)
     target_link_libraries(walnutpie INTERFACE mimalloc-static)
+    target_compile_definitions(walnutpie INTERFACE EIGEN_MALLOC_ALREADY_ALIGNED=0)
 endif()
 
 

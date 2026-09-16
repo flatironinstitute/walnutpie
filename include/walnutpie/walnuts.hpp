@@ -53,13 +53,14 @@ class SpanW {
             grad_theta,
             logp_joint,
             theta,
-            std::move(rho),
+            rho,
             grad_theta,
             logp_joint,
             std::move(theta),
             std::move(grad_theta),
             logp_pos,
-            logp_joint};
+            logp_joint,
+	    std::move(rho)};
   }
 
   /**
@@ -90,7 +91,8 @@ class SpanW {
             std::move(theta_select),
             std::move(grad_select),
             logp_pos_select,
-            logp_joint_total};
+            logp_joint_total,
+            span1.rho_sum_ + span2.rho_sum_};
   }
 
   /** The earliest state. */
@@ -128,6 +130,9 @@ class SpanW {
 
   /** The log of the sum of the joint densities in the trajectory. */
   double logp_;
+
+  /** The sum of momenta over the states in the span. */
+  Eigen::VectorXd rho_sum_;
 };
 
 /**
@@ -189,16 +194,37 @@ static std::tuple<T&, T&> order_forward_backward(T&& x1, T&& x2) {
  * @param[in] inv_mass The inverse mass matrix to determine distances.
  * @return `true` if there is a U-turn between the ends of the ordered spans.
  */
+inline bool uturn(const Eigen::VectorXd& inv_mass_rho,
+                     const Eigen::VectorXd& p_beg, const Eigen::VectorXd& p_end,
+                     const Eigen::VectorXd& rho) {
+  Eigen::VectorXd inv_mass_rho = (inv_mass.array() * rho.array()).matrix();
+  return inv_mass_rho.dot(p_beg) <= 0.0
+    || inv_mass_rho.dot(p_end) <= 0.0;
+}
+
 template <Direction D>
 static bool uturn(const SpanW& span1, const SpanW& span2,
                   const Eigen::VectorXd& inv_mass) {
-  auto [span_bk, span_fw] = order_forward_backward<D>(span1, span2);
-  auto scaled_diff =
-      (inv_mass.array() * (span_fw.theta_fw_ - span_bk.theta_bk_).array())
-          .matrix();
-  return span_fw.rho_fw_.dot(scaled_diff) < 0 ||
-         span_bk.rho_bk_.dot(scaled_diff) < 0;
+  auto [bk, fw] = order_forward_backward<D>(span1, span2);
+  Eigen::VectorXd rho = bk.rho_sum_ + fw.rho_sum_;
+  if (uturn(inv_mass, bk.rho_bk_, fw.rho_fw_, scratch)) return true;
+  rho = bk.rho_sum_ + fw.rho_bk_;
+  if (uturn(inv_mass, bk.rho_bk_, fw.rho_bk_, scratch)) return true;
+  rho = bk.rho_fw_ + fw.rho_sum_;
+  if (uturn(inv_mass, bk.rho_fw_, fw.rho_fw_, scratch)) return true;
+  return false;
 }
+
+// template <Direction D>
+// static bool uturn(const SpanW& span1, const SpanW& span2,
+//                   const Eigen::VectorXd& inv_mass) {
+//   auto [span_bk, span_fw] = order_forward_backward<D>(span1, span2);
+//   auto scaled_diff =
+//       (inv_mass.array() * (span_fw.theta_fw_ - span_bk.theta_bk_).array())
+//           .matrix();
+//   return span_fw.rho_fw_.dot(scaled_diff) < 0 ||
+//          span_bk.rho_bk_.dot(scaled_diff) < 0;
+// }
 
 /**
  * @brief Return `true` if running the specified number of leapfrog steps

@@ -9,6 +9,10 @@
 static double total_time = 0.0;
 static std::size_t count = 0;
 
+static std::size_t DIM = 100;
+static std::size_t WARMUP = 1000;
+static std::size_t SAMPLE = 10000;
+
 // p(y) = normal(y | 0, I)
 static void std_normal(const Eigen::VectorXd& x, double& logp,
                        Eigen::VectorXd& grad) {
@@ -31,7 +35,7 @@ static void ill_normal(const Eigen::VectorXd& x, double& logp,
 }
 
 // p(y) = normal(y | 0, Sigma), with Sigma[i, j] = rho^abs(i - j)
-static void rw1(const Eigen::VectorXd& y, double& logp, Eigen::VectorXd& grad) {
+__attribute__((noinline)) static void rw1(const Eigen::VectorXd& y, double& logp, Eigen::VectorXd& grad) {
   double rho = 0.99;
   Eigen::Index D = y.size();
   double sigma_sq = 1.0 - rho * rho;
@@ -82,7 +86,7 @@ static void run_adaptive_walnuts(F& target_logp_grad) {
   std::mt19937 rng(seed);
 
   std::size_t num_chains = 1;
-  std::size_t D = 100;
+  std::size_t D = DIM;
 
   auto init_cfg = walnutpie::InitConfigBuilder(num_chains, D)
                       .positions(rng, 1.0)
@@ -90,7 +94,7 @@ static void run_adaptive_walnuts(F& target_logp_grad) {
                       .build();
 
   auto warmup_cfg = walnutpie::WarmupConfigBuilder()
-                        .min_max_iter(50, 100)
+                        .min_max_iter(WARMUP, WARMUP)
                         .mass_converge_tol(1.0)
                         .step_size_converge_tol(0.1)
                         .mass_init_count(4.0)
@@ -103,7 +107,7 @@ static void run_adaptive_walnuts(F& target_logp_grad) {
                         .build();
 
   auto sampling_cfg = walnutpie::SamplingConfigBuilder()
-                          .min_max_iter(50, 1000)
+                          .min_max_iter(SAMPLE, SAMPLE)
                           .min_micro_steps(1)
                           .max_trajectory_doublings(8)
                           .max_step_halvings(5)
@@ -136,9 +140,10 @@ static void run_adaptive_walnuts(F& target_logp_grad) {
             << adapt.inv_mass().transpose() << std::endl;
 }
 
-int main() {
-  // run_adaptive_walnuts(std_normal);
-  // run_adaptive_walnuts(ill_normal);
+int main(int argc, char** argv) {
+  if (argc > 1) DIM = std::stoul(argv[1]);
+  if (argc > 2) WARMUP = std::stoul(argv[2]);
+  if (argc > 3) SAMPLE = std::stoul(argv[3]);
   run_adaptive_walnuts(rw1);
   return 0;
 }
