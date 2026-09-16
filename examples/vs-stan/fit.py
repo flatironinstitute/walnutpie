@@ -19,15 +19,25 @@ ITER_WARMUP = 1000
 MIN_ITER_WARMUP = ITER_WARMUP
 ITER = 20_000
 MIN_ITER = ITER
-NUM_CHAINS = 16
+NUM_CHAINS = 4
 METRIC_PER_LINE = 100
 NUTPIE_TARGET_ACCEPT = 0.8
 NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
+    ("hmm/hmm_example.stan", "hmm_example.json"),
+    ("hmm/hmm_gaussian.stan", "hmm_gaussian_simulated.json"),
+
+    ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
+    ("gp/gp_pois_regr.stan", "gp/gp_pois_regr.json"),
+
+    ("eight-schools/eight_schools_centered.stan", "eight-schools/eight_schools.json"),
+    ("eight-schools/eight_schools_noncentered.stan", "eight-schools/eight_schools.json"),
+
     ("time-series/arK.stan", "time-series/arK.json"),
     ("time-series/arma11.stan", "time-series/arma.json"),
     ("time-series/garch11.stan", "time-series/garch.json"),
+
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
     (
@@ -319,15 +329,15 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         min_sampling_iter=MIN_ITER,
         max_sampling_iter=ITER,
         max_trajectory_doublings=10,  # 5 Walnutpie, 10 Good
-        max_step_halvings=1,  # 5 Walnutpie, 5 good,
-        min_micro_steps=1,
-        max_macro_steps_target=1024,  # XXXX 16.0 Walnutpie, 16 Good
+        max_step_halvings=5,  # 5 Walnutpie, 5 good,
+        # min_micro_steps=1,
+        max_macro_steps_target=16,  # XXXX 16.0 Walnutpie, 16 Good
         init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
-        step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
-        max_hamiltonian_error=1e6,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
+        step_size_init=0.05,  # 1.0 Walnutpie, 0.1 Good
+        max_hamiltonian_error=0.5,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
         mass_init_count=4,  # XXXX 4.0 Walnutpie, 1.01 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
-        step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.9 Good
+        step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.8 Good
         step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
         step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
         step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
@@ -400,9 +410,9 @@ if __name__ == "__main__":
         fit_wnp = fit_walnutpie_one(stan_path, json_path)
         print_fit(fit_wnp, stan_path, "Walnutpie", time.perf_counter() - t0)
 
-        t0 = time.perf_counter()
-        fit_csp = fit_stan_one(stan_path, json_path)
-        print_fit(fit_csp, stan_path, "CmdStanPy", time.perf_counter() - t0)
+        # t0 = time.perf_counter()
+        # fit_csp = fit_stan_one(stan_path, json_path)
+        # print_fit(fit_csp, stan_path, "CmdStanPy", time.perf_counter() - t0)
 
         t0 = time.perf_counter()
         fit_ntp = fit_nutpie_one(stan_path, json_path)
