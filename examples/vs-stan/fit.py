@@ -25,6 +25,8 @@ NUTPIE_TARGET_ACCEPT = 0.8
 NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
+    ("ode/lotka_volterra.stan", "ode/hudson_lynx_hare.json"),
+    
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
     ("hmm/hmm_gaussian.stan", "hmm/hmm_gaussian_simulated.json"),
 
