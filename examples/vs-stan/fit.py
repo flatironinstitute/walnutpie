@@ -25,8 +25,8 @@ NUTPIE_TARGET_ACCEPT = 0.8
 NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
-    ("hmm/hmm_example.stan", "hmm_example.json"),
-    ("hmm/hmm_gaussian.stan", "hmm_gaussian_simulated.json"),
+    ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
+    ("hmm/hmm_gaussian.stan", "hmm/hmm_gaussian_simulated.json"),
 
     ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
     ("gp/gp_pois_regr.stan", "gp/gp_pois_regr.json"),
