@@ -19,15 +19,27 @@ ITER_WARMUP = 200
 MIN_ITER_WARMUP = ITER_WARMUP
 ITER = 1_000
 MIN_ITER = ITER
-NUM_CHAINS = 16
+NUM_CHAINS = 4
 METRIC_PER_LINE = 100
 NUTPIE_TARGET_ACCEPT = 0.8
 NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
+    ("ode/lotka_volterra.stan", "ode/hudson_lynx_hare.json"),
+    
+    ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
+    ("hmm/hmm_gaussian.stan", "hmm/hmm_gaussian_simulated.json"),
+
+    ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
+    ("gp/gp_pois_regr.stan", "gp/gp_pois_regr.json"),
+
+    ("eight-schools/eight_schools_centered.stan", "eight-schools/eight_schools.json"),
+    ("eight-schools/eight_schools_noncentered.stan", "eight-schools/eight_schools.json"),
+
     ("time-series/arK.stan", "time-series/arK.json"),
     ("time-series/arma11.stan", "time-series/arma.json"),
     ("time-series/garch11.stan", "time-series/garch.json"),
+
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
     (
@@ -400,9 +412,9 @@ if __name__ == "__main__":
         fit_wnp = fit_walnutpie_one(stan_path, json_path)
         print_fit(fit_wnp, stan_path, "Walnutpie", time.perf_counter() - t0)
 
-        t0 = time.perf_counter()
-        fit_csp = fit_stan_one(stan_path, json_path)
-        print_fit(fit_csp, stan_path, "CmdStanPy", time.perf_counter() - t0)
+        # t0 = time.perf_counter()
+        # fit_csp = fit_stan_one(stan_path, json_path)
+        # print_fit(fit_csp, stan_path, "CmdStanPy", time.perf_counter() - t0)
 
         t0 = time.perf_counter()
         fit_ntp = fit_nutpie_one(stan_path, json_path)
