@@ -2,6 +2,9 @@
 build/
 compile_commands.json
 
+# Generated plots
+*.pdf
+
 # Perf files
 /perf.data
 /perf.data.old

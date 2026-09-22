@@ -73,8 +73,14 @@ class MassEstimator {
    */
   void observe(const Eigen::VectorXd& theta, const Eigen::VectorXd& grad,
                std::size_t iteration) {
-    double discount_factor = 1.0 - 1.0 / (warmup_cfg_.mass_init_count() +
-                                          static_cast<double>(iteration));
+    double numerator = iteration > 100
+      ? 1.0
+      : ( iteration > 50
+	  ? 2.0
+	  : 3.0 );
+    
+    double discount_factor = 1 - numerator / (warmup_cfg_.mass_init_count()
+					      + static_cast<double>(iteration));
     draw_var_estimator_.discount_observe(discount_factor, theta);
     score_var_estimator_.discount_observe(discount_factor, grad);
   }
@@ -239,7 +245,8 @@ class AdaptiveWalnuts {
     std::size_t depth;
     theta_ =
         transition_w(rand_, logp_grad_, inv_mass, chol_mass, adam_.step_size(),
-                     sampling_cfg_.get().max_trajectory_doublings(),
+                     std::min<std::size_t>(static_cast<std::size_t>(5),
+					   sampling_cfg_.get().max_trajectory_doublings()),
                      sampling_cfg_.get().max_step_halvings(),
                      min_micro_estimator_.min_micro_steps(),
                      sampling_cfg_.get().max_hamiltonian_error(),
