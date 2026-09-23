@@ -15,9 +15,9 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
 SEED = 111111
-ITER_WARMUP = 200
+ITER_WARMUP = 1000
 MIN_ITER_WARMUP = ITER_WARMUP
-ITER = 1_000
+ITER = 1000
 MIN_ITER = ITER
 NUM_CHAINS = 4
 METRIC_PER_LINE = 100
@@ -25,8 +25,58 @@ NUTPIE_TARGET_ACCEPT = 0.8
 NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
+   ("wells/wells_daae_c_model.stan", "wells/wells_data.json"),
+   ("wells/wells_interaction_c_model.stan", "wells/wells_data.json"),
+   ("wells/wells_dist.stan", "wells/wells_data.json"),
+
+   ("seeds/seeds_model.stan", "seeds/seeds_data.json"),
+   ("seeds/seeds_centered_model.stan", "seeds/seeds_data.json"),
+   ("seeds/seeds_stanified_model.stan", "seeds/seeds_data.json"),
+
+   ("rats/rats_model.stan", "rats/rats_data.json"),   # not fitting well in Walnutpie with small warmup, warmup min/max off
+
+   ("prophet/prophet.stan", "prophet/rstan_downloads.json"),
+
+   ("occupancy/multi_occupancy.stan", "occupancy/butterfly.json"),
+
+   ("capture/M0_model.stan", "capture/M0_data.json"),
+   ("capture/Mtbh_model.stan", "capture/Mtbh_data.json"),
+
+   ("lsat/lsat_model.stan", "lsat/lsat_data.json"),
+
+   ("losscurve/losscurve_sislob.stan", "losscurve/loss_curves.json"),
+
+   ("election/election88_full.stan", "election/election88.json"),
+
+   ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much better
+
+    ("mnist/nn_rbm1bJ10.stan", "mnist/mnist_100.json"),  # can do if crank down iterations or wait
+
+    ("diamonds/diamonds.stan", "diamonds/diamonds.json"),   # 2.4 MB data, slow
+
+    ("irt/irt_2pl.stan", "irt/irt_2pl.json"),
+
+    ("earn/earn_height.stan", "earn/earnings.json"),     # *** doesn't fit in Walnutpie ***
+    ("earn/logearn_height.stan", "earn/earnings.json"),
+
+    ("kilpisjarvi/kilpisjarvi.stan", "kilpisjarvi/kilpisjarvi_mod.json"),  # *** doesn't fit in Walnutpie ***
+
+    ("nes/nes.stan", "nes/nes1980.json"),
+    ("nes/nes.stan", "nes/nes2000.json"),
+
+    ("mesquite/logmesquite_logvolume.stan", "mesquite/mesquite.json"),
+
+    ("mixture/low_dim_gauss_mix.stan", "mixture/low_dim_gauss_mix.json"),
+
+    ("kid/kidscore_interaction.stan", "kid/kidiq.json"),
+
+    ("blr/blr.stan", "blr/sblrc.json"),  # requires > 400 warmup iterations for Walnutpie, but not Nutpie
+
+    ("radon/radon_pooled.stan", "radon/radon_mn.json"),
+    ("radon/radon_pooled.stan", "radon/radon_all.json"),
+
     ("ode/lotka_volterra.stan", "ode/hudson_lynx_hare.json"),
-    
+
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
     ("hmm/hmm_gaussian.stan", "hmm/hmm_gaussian_simulated.json"),
 
@@ -62,6 +112,13 @@ STAN_JSON_PAIRS = [
         "hierarchical_matrix/hierarchical_matrix_2.stan",
         "hierarchical_matrix/hierarchical_matrix.json",
     ),
+
+#   ("time-series/state_space_stochastic_level_stochastic_seasonal.stan", "time-series/uk_drivers.json"),  # low min ESS in both
+
+#   ("ode/soil_incubation.stan", "ode/soil_carbon.json"),    # low min ESS in both
+
+#   ("ode/sir.stan", "ode/sir.json"),    # initialization fails
+
 #    (
 #        "measurement_error/measurement_error.stan",
 #        "measurement_error/measurement_error_5.json",
@@ -331,15 +388,15 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         min_sampling_iter=MIN_ITER,
         max_sampling_iter=ITER,
         max_trajectory_doublings=10,  # 5 Walnutpie, 10 Good
-        max_step_halvings=1,  # 5 Walnutpie, 5 good,
+        max_step_halvings=5,  # 5 Walnutpie, 5 good,
         # min_micro_steps=1,
         max_macro_steps_target=1024,  # XXXX 16.0 Walnutpie, 16 Good
         init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
-        step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
+        step_size_init=0.5,  # 1.0 Walnutpie, 0.1 Good
         max_hamiltonian_error=1e6,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
         mass_init_count=4.0,  # XXXX 4.0 Walnutpie, 1.01 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
-        step_accept_rate_target=0.85,  # 0.8 Walnutpie, 0.9 Good
+        step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.9 Good
         step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
         step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
         step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
