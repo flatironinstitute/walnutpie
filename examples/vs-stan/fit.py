@@ -19,12 +19,41 @@ ITER_WARMUP = 1000
 MIN_ITER_WARMUP = ITER_WARMUP
 ITER = 1000
 MIN_ITER = ITER
-NUM_CHAINS = 4
+NUM_CHAINS = 16
 METRIC_PER_LINE = 100
 NUTPIE_TARGET_ACCEPT = 0.8
 NUTPIE_ADAPTATION = "diag"
 
 STAN_JSON_PAIRS = [
+    ("eight-schools/eight_schools_centered.stan", "eight-schools/eight_schools.json"),
+    ("eight-schools/eight_schools_noncentered.stan", "eight-schools/eight_schools.json"),
+
+    ("time-series/arK.stan", "time-series/arK.json"),
+    ("time-series/arma11.stan", "time-series/arma.json"),   # fails on small inits
+    ("time-series/garch11.stan", "time-series/garch.json"),
+
+    ("normal/std-normal.stan", "normal/std-normal.json"),
+    ("normal/ill-normal.stan", "normal/ill-normal.json"),
+    (
+        "multilevel_regression/multilevel_regression.stan",
+        "multilevel_regression/multilevel_regression.json",
+    ),
+    (
+        "multilevel_regression/multilevel_regression_logit.stan",
+        "multilevel_regression/multilevel_regression_logit.json",
+    ),
+    (
+        "measurement_error/measurement_error.stan",
+        "measurement_error/measurement_error_1.json",
+    ),
+    (
+        "hierarchical_matrix/hierarchical_matrix_1.stan",  # hard for Nutpie
+        "hierarchical_matrix/hierarchical_matrix.json",
+    ),
+    (
+        "hierarchical_matrix/hierarchical_matrix_2.stan",
+        "hierarchical_matrix/hierarchical_matrix.json",
+    ),    
    ("wells/wells_daae_c_model.stan", "wells/wells_data.json"),
    ("wells/wells_interaction_c_model.stan", "wells/wells_data.json"),
    ("wells/wells_dist.stan", "wells/wells_data.json"),
@@ -48,15 +77,13 @@ STAN_JSON_PAIRS = [
 
    ("election/election88_full.stan", "election/election88.json"),
 
-   ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much better
-
-    ("mnist/nn_rbm1bJ10.stan", "mnist/mnist_100.json"),  # can do if crank down iterations or wait
+   ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slowe
 
     ("diamonds/diamonds.stan", "diamonds/diamonds.json"),   # 2.4 MB data, slow
 
     ("irt/irt_2pl.stan", "irt/irt_2pl.json"),
 
-    ("earn/earn_height.stan", "earn/earnings.json"),     # *** doesn't fit in Walnutpie ***
+    ("earn/earn_height.stan", "earn/earnings.json"),     # *** doesn't fit in Walnutpie -- metric to 500K ***
     ("earn/logearn_height.stan", "earn/earnings.json"),
 
     ("kilpisjarvi/kilpisjarvi.stan", "kilpisjarvi/kilpisjarvi_mod.json"),  # *** doesn't fit in Walnutpie ***
@@ -70,54 +97,24 @@ STAN_JSON_PAIRS = [
 
     ("kid/kidscore_interaction.stan", "kid/kidiq.json"),
 
-    ("blr/blr.stan", "blr/sblrc.json"),  # requires > 400 warmup iterations for Walnutpie, but not Nutpie
+    ("blr/blr.stan", "blr/sblrc.json"),  # requires > 400 warmup iterations for Walnutpie, but not Nutpie; much slower @ 1000 warmup
 
     ("radon/radon_pooled.stan", "radon/radon_mn.json"),
     ("radon/radon_pooled.stan", "radon/radon_all.json"),
 
-    ("ode/lotka_volterra.stan", "ode/hudson_lynx_hare.json"),
-
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
-    ("hmm/hmm_gaussian.stan", "hmm/hmm_gaussian_simulated.json"),
 
     ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
-    ("gp/gp_pois_regr.stan", "gp/gp_pois_regr.json"),
+#    ("gp/gp_pois_regr.stan", "gp/gp_pois_regr.json"),   # seg faults Nutpie (maybe bad config?)
 
-    ("eight-schools/eight_schools_centered.stan", "eight-schools/eight_schools.json"),
-    ("eight-schools/eight_schools_noncentered.stan", "eight-schools/eight_schools.json"),
+#    ("mnist/nn_rbm1bJ10.stan", "mnist/mnist_100.json"),  # can do if crank down iterations or wait, but very slow with 8K params
 
-    ("time-series/arK.stan", "time-series/arK.json"),
-    ("time-series/arma11.stan", "time-series/arma.json"),
-    ("time-series/garch11.stan", "time-series/garch.json"),
-
-    ("normal/std-normal.stan", "normal/std-normal.json"),
-    ("normal/ill-normal.stan", "normal/ill-normal.json"),
-    (
-        "multilevel_regression/multilevel_regression.stan",
-        "multilevel_regression/multilevel_regression.json",
-    ),
-    (
-        "multilevel_regression/multilevel_regression_logit.stan",
-        "multilevel_regression/multilevel_regression_logit.json",
-    ),
-    (
-        "measurement_error/measurement_error.stan",
-        "measurement_error/measurement_error_1.json",
-    ),
-    (
-        "hierarchical_matrix/hierarchical_matrix_1.stan",
-        "hierarchical_matrix/hierarchical_matrix.json",
-    ),
-    (
-        "hierarchical_matrix/hierarchical_matrix_2.stan",
-        "hierarchical_matrix/hierarchical_matrix.json",
-    ),
-
+#   ("hmm/hmm_gaussian.stan", "hmm/hmm_gaussian_simulated.json"),  # doesn't fit in either
 #   ("time-series/state_space_stochastic_level_stochastic_seasonal.stan", "time-series/uk_drivers.json"),  # low min ESS in both
 
 #   ("ode/soil_incubation.stan", "ode/soil_carbon.json"),    # low min ESS in both
-
 #   ("ode/sir.stan", "ode/sir.json"),    # initialization fails
+#   ("ode/lotka_volterra.stan", "ode/hudson_lynx_hare.json"),  # fails on initialization
 
 #    (
 #        "measurement_error/measurement_error.stan",
@@ -388,19 +385,19 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         min_sampling_iter=MIN_ITER,
         max_sampling_iter=ITER,
         max_trajectory_doublings=10,  # 5 Walnutpie, 10 Good
-        max_step_halvings=5,  # 5 Walnutpie, 5 good,
+        max_step_halvings=1,  # 5 Walnutpie, 5 good,
         # min_micro_steps=1,
         max_macro_steps_target=1024,  # XXXX 16.0 Walnutpie, 16 Good
-        init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
+        init_radius=0.5,  # 2.0 Walnutpie, 0.1 Good
         step_size_init=0.5,  # 1.0 Walnutpie, 0.1 Good
         max_hamiltonian_error=1e6,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
         mass_init_count=4.0,  # XXXX 4.0 Walnutpie, 1.01 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
         step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.9 Good
-        step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
+        step_learning_rate=0.1,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
         step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
         step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
-        step_stabilization=0.0001,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
+        step_stabilization=1e-7,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
         step_learn_rate_decay=0.5,  # 0.5 Walnutpie, 0.5 Good
         # init_inv_metric=np.ones(model.param_unc_num()),
         save_inv_metric=True,

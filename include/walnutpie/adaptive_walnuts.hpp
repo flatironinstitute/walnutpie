@@ -73,14 +73,35 @@ class MassEstimator {
    */
   void observe(const Eigen::VectorXd& theta, const Eigen::VectorXd& grad,
                std::size_t iteration) {
-    double numerator = iteration > 100
-      ? 1.0
-      : ( iteration > 50
-	  ? 2.0
-	  : 3.0 );
+    // double numerator = iteration > 100
+    //   ? 1.0
+    //   : ( iteration > 50
+    // 	  ? 2.0
+    // 	  : 3.0 );
+
+    double discount_factor = 1 - 1 / (warmup_cfg_.mass_init_count()
+        			      + static_cast<double>(iteration));
+
+    // with this, mass init count not doing anything 
+    if (iteration < 4) {
+      discount_factor = 0.8;
+    } else if (iteration < 10) {
+      discount_factor = 0.6;
+    } else if (iteration < 20) {
+      discount_factor = 0.7;
+    } else if (iteration < 50) {
+      discount_factor = 0.75;
+    } else if (iteration < 100) {
+      discount_factor = 0.8;
+    } else if (iteration < 200) {
+      discount_factor = 0.9;
+    } else if (iteration < 400) {
+      discount_factor = 0.95;
+    } else if (iteration < 800) {
+      discount_factor = 0.99;
+    }
     
-    double discount_factor = 1 - numerator / (warmup_cfg_.mass_init_count()
-					      + static_cast<double>(iteration));
+    
     draw_var_estimator_.discount_observe(discount_factor, theta);
     score_var_estimator_.discount_observe(discount_factor, grad);
   }
