@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 #include <walnutpie/adam.hpp>
+#include <walnutpie/adapt.hpp>
+#include <walnutpie/config.hpp>
 #include <walnutpie/walnuts.hpp>
 
 #include <cmath>
+#include <deque>
 #include <limits>
+#include <stdexcept>
 #include <random>
 #include <vector>
 
@@ -116,6 +120,52 @@ TEST(MacroStepAdaptation, ConservedEnergyKeepsUnitAcceptance) {
   EXPECT_EQ(adapter.observed, std::vector<double>{1.0});
 }
 
+struct StopPolling {
+  void throw_if_interrupted() const {
+    throw std::runtime_error("not converged");
+  }
+};
+  
+TEST(ControllerLoop, RejectsLowStepWhenHighStepsAreWithinTolerance) {
+  StopPolling interrupt;
+  auto init = walnutpie::InitConfigBuilder(3, 1).build();
+  auto warmup_cfg = walnutpie::WarmupConfigBuilder()
+                        .step_size_converge_tol(0.1)
+                        .build();
+  std::deque<walnutpie::detail::SpscBuffer<walnutpie::detail::AdaptSnapshot>>
+      buffers;
+  walnutpie::detail::AdaptSnapshot snap(1);
+  snap.iter = warmup_cfg.min_iter();
+  snap.log_mass.setZero();
+  snap.mass.setOnes();
+  for (double step : {0.8, 1.05, 1.05}) {
+    snap.log_step = std::log(step);
+    buffers.emplace_back(snap);
+  }
+  EXPECT_THROW(
+      walnutpie::detail::controller_loop(buffers, interrupt, init, warmup_cfg),
+      std::runtime_error);
+}
+
+TEST(ControllerLoop, AcceptWhenStepsConverge) {
+  StopPolling interrupt;
+  auto init = walnutpie::InitConfigBuilder(3, 1).build();
+  auto warmup_cfg = walnutpie::WarmupConfigBuilder()
+                        .step_size_converge_tol(0.1)
+                        .build();
+  std::deque<walnutpie::detail::SpscBuffer<walnutpie::detail::AdaptSnapshot>>
+      buffers;
+  walnutpie::detail::AdaptSnapshot snap(1);
+  snap.iter = warmup_cfg.min_iter();
+  snap.log_mass.setZero();
+  snap.mass.setOnes();
+  for (double step : {1.0, 1.0, 1.0}) {
+    snap.log_step = std::log(step);
+    buffers.emplace_back(snap);
+  }
+  EXPECT_NO_THROW(walnutpie::detail::controller_loop(buffers, interrupt, init, warmup_cfg));
+}
+  
 TEST(TransitionDepth, ReportsIncludedDoublings) {
   auto gaussian = [](const Eigen::VectorXd& x, double& lp, Eigen::VectorXd& g) {
     lp = -0.5 * x.squaredNorm();
@@ -130,4 +180,5 @@ TEST(TransitionDepth, ReportsIncludedDoublings) {
   };
   EXPECT_EQ(transition_depth(nonfinite, 4), 0u);
 }
+
 }  // namespace
