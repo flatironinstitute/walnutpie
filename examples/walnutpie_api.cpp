@@ -81,7 +81,7 @@ int main() {
   walnutpie::WalnutsConfig config{std::move(init_cfg), std::move(warmup_cfg),
                                   std::move(sampling_cfg)};
   walnutpie::walnuts<std::mt19937_64>(seed, chain_handlers, global_handler,
-                                      interrupt_callback, logp_grad, config);
+                                      interrupt_callback, logp_grad, std::move(config));
 
   // 3) SUMMARIZE ==============================================================
   std::cout << "ADAPTATION RESULT: " << "\n";

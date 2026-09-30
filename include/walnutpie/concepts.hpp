@@ -3,10 +3,17 @@
 #include <concepts>
 #include <cstddef>
 #include <ranges>
+#include <type_traits>
 
 #include <Eigen/Dense>
 
 namespace walnutpie::detail {
+
+/**
+ * @brief Concept for a forwarding reference type `T` that binds to `U`.
+ */
+template <typename T, typename U>
+concept DecaysTo = std::same_as<std::remove_cvref_t<T>, U>;
 
 /**
  * @brief Concept for a type with a `.size()` member function.
