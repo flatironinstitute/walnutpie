@@ -20,24 +20,21 @@ namespace walnutpie {
  * seed, sampling event handlers, and configuration.
  *
  * @tparam Handler The type of the event handlers.
- * @tparam C The type of the configuration.
  * @param[in] seed The seed for the pseudo-random number generator.
  * @param[in] chain_handlers The collection of chain-specific handlers, which
  * are called back.
  * @param[in] global_handler The handler for global cross-chain events.
  * @param[in] interrupt_callback The callback for stopping.
  * @param[in] log_p_grad The log density and gradient function, called back.
- * @param[in] config The configuration for Walnutpie, from which per-chain
- * initializations are moved if it is an rvalue.
+ * @param[in] config The configuration for Walnutpie.
  * @throws std::invalid_argument If the number of handlers doesn't match
  * the initialization configuration's number of chains.
  */
 template <std::uniform_random_bit_generator RNG, ChainHandler H,
-          GlobalHandler GH, InterruptCallback IC, LogpGrad F,
-          detail::DecaysTo<WalnutsConfig> C>
+          GlobalHandler GH, InterruptCallback IC, LogpGrad F>
 inline void walnuts(std::size_t seed, std::vector<H>& chain_handlers,
                     GH& global_handler, const IC& interrupt_callback,
-                    const F& log_p_grad, C&& config) {
+                    const F& log_p_grad, const WalnutsConfig& config) {
   using AdaptiveSampler = AdaptiveWalnuts<F, RNG, H>;
   using Sampler = WalnutsSampler<F, RNG, H>;
 
@@ -56,8 +53,8 @@ inline void walnuts(std::size_t seed, std::vector<H>& chain_handlers,
   adapters.reserve(config.init().num_chains());
   for (std::size_t m = 0; m < config.init().num_chains(); ++m) {
     adapters.emplace_back(rngs[m], chain_handlers[m], log_p_grad,
-                          std::forward<C>(config).init().init_chain_config(m),
-                          config.warmup(), config.sampling());
+                          config.init().init_chain_config(m), config.warmup(),
+                          config.sampling());
   }
   detail::adapt(config.init(), config.warmup(), adapters, interrupt_callback);
 

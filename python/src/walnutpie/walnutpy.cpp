@@ -80,7 +80,7 @@ void run_sampler(const walnutpie::LogpGrad auto& logp, int num_params,
       std::move(sample_cfg)};
 
   walnutpie::walnuts<std::mt19937_64>(seed + id + num_chains, handlers, global,
-                                      interrupt, logp, std::move(walnuts_cfg));
+                                      interrupt, logp, walnuts_cfg);
 }
 
 walnutpie::MarkovChainsUnified make_chains(const double* draws, int num_draws,

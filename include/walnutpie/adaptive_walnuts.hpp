@@ -25,8 +25,9 @@ namespace walnutpie::detail {
 class MassEstimator {
  public:
   /**
-   * @brief Construct a mass matrix estimator with the specified configuration
-   * and initial mass matrix.
+   * @brief Construct a mass matrix estimator with the specified configuration,
+   * at the specified initial position and gradient of the log density at the
+   * position.
    *
    * The estimator observes positions and their gradients at given iterations
    * with the function `observe()`. At each step, the discount factor for
@@ -46,15 +47,18 @@ class MassEstimator {
    * variance estimator).
    *
    * @param[in] warmup_cfg The warmup configuration.
-   * @param[in] mass The initial diagonal of the mass matrix.
+   * @param[in] init_cfg The initialization configuration.
+   * @throw std::invalid_argument If the position and gradient are not the same
+   * size.
    */
-  MassEstimator(const WarmupConfig& warmup_cfg, const Eigen::VectorXd& mass)
+  MassEstimator(const WarmupConfig& warmup_cfg, const InitChainConfig& init_cfg)
       : warmup_cfg_(warmup_cfg) {
-    Eigen::VectorXd zero = Eigen::VectorXd::Zero(mass.size());
+    Eigen::VectorXd zero = Eigen::VectorXd::Zero(init_cfg.position().size());
     score_var_estimator_ =
-        OnlineMoments(warmup_cfg.mass_init_count(), zero, mass);
-    draw_var_estimator_ = OnlineMoments(warmup_cfg.mass_init_count(), zero,
-                                        mass.array().inverse().matrix());
+        OnlineMoments(warmup_cfg.mass_init_count(), zero, init_cfg.mass());
+    draw_var_estimator_ =
+        OnlineMoments(warmup_cfg.mass_init_count(), zero,
+                      init_cfg.mass().array().inverse().matrix());
   }
 
   /**
@@ -181,12 +185,10 @@ class AdaptiveWalnuts {
   /**
    * @brief Construct an adaptive Walnuts sampler.
    *
-   * The sampler copies the configuration values it needs, moving the initial
-   * position out of the chain initialization if it is an rvalue. It holds the
+   * The sampler copies the configuration values it needs. It holds the
    * random number generator, event handler, and log density/gradient
    * function by reference.
    *
-   * @tparam C Type of the chain initialization configuration.
    * @param[in,out] rng The base random number generator.
    * @param[in,out] handler Event handler for adaptation and sampling.
    * @param[in] logp_grad The target log density and gradient function.
@@ -195,22 +197,22 @@ class AdaptiveWalnuts {
    * @param[in] warmup_cfg The warmup configuration.
    * @param[in] sampling_cfg The sampling configuration.
    */
-  template <detail::DecaysTo<InitChainConfig> C>
-  AdaptiveWalnuts(RNG& rng, H& handler, const F& logp_grad, C&& init_chain_cfg,
+  AdaptiveWalnuts(RNG& rng, H& handler, const F& logp_grad,
+                  const InitChainConfig& init_chain_cfg,
                   const WarmupConfig& warmup_cfg,
                   const SamplingConfig& sampling_cfg)
       : sampling_cfg_(sampling_cfg),
         rand_(rng),
         handler_(handler),
         logp_grad_(logp_grad, handler),
-        theta_(std::forward<C>(init_chain_cfg).position()),
+        theta_(init_chain_cfg.position()),
         iteration_(0),
         adam_(init_chain_cfg.step_size(), warmup_cfg.step_accept_rate_target(),
               warmup_cfg.step_learning_rate(), warmup_cfg.step_gradient_decay(),
               warmup_cfg.step_sq_gradient_decay(),
               warmup_cfg.step_stabilization(),
               warmup_cfg.step_learn_rate_decay()),
-        mass_estimator_(warmup_cfg, init_chain_cfg.mass()),
+        mass_estimator_(warmup_cfg, init_chain_cfg),
         min_micro_estimator_(warmup_cfg.max_macro_steps_target(),
                              sampling_cfg.min_micro_steps()) {
     logp_grad_(theta_, logp_, grad_);

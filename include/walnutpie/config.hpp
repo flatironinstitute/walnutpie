@@ -31,11 +31,9 @@ class InitChainConfig {
    * @param[in] position The initial position.
    * @param[in] mass The initial mass matrix (diagonal).
    */
-  InitChainConfig(double step_size, Eigen::VectorXd position,
-                  Eigen::VectorXd mass)
-      : step_size_(step_size),
-        position_(std::move(position)),
-        mass_(std::move(mass)) {}
+  InitChainConfig(double step_size, const Eigen::VectorXd& position,
+                  const Eigen::VectorXd& mass)
+      : step_size_(step_size), position_(position), mass_(mass) {}
 
   /**
    * @brief Return the initial step size.
@@ -49,28 +47,14 @@ class InitChainConfig {
    *
    * @return The position.
    */
-  const Eigen::VectorXd& position() const& noexcept { return position_; }
-
-  /**
-   * @brief Return the initial position, moved out of this configuration.
-   *
-   * @return The position.
-   */
-  Eigen::VectorXd position() && { return std::move(position_); }
+  const Eigen::VectorXd& position() const noexcept { return position_; }
 
   /**
    * @brief Return the initial mass matrix.
    *
    * @return The mass matrix.
    */
-  const Eigen::VectorXd& mass() const& noexcept { return mass_; }
-
-  /**
-   * @brief Return the initial mass matrix, moved out of this configuration.
-   *
-   * @return The mass matrix.
-   */
-  Eigen::VectorXd mass() && { return std::move(mass_); }
+  const Eigen::VectorXd& mass() const noexcept { return mass_; }
 
  private:
   double step_size_;
@@ -103,7 +87,11 @@ class InitConfig {
    *
    * @return The dimensionality.
    */
-  std::size_t dims() const noexcept { return dims_; }
+  std::size_t dims() const noexcept {
+    return positions_.empty()
+               ? 0u
+               : static_cast<std::size_t>(positions_.front().size());
+  }
 
   /**
    * @brief Return the initial step sizes.
@@ -164,22 +152,8 @@ class InitConfig {
    * @param[in] n The chain index.
    * @return The indexed chain's initialization configuration.
    */
-  InitChainConfig init_chain_config(std::size_t n) const& {
+  InitChainConfig init_chain_config(std::size_t n) const {
     return InitChainConfig(step_size(n), position(n), mass(n));
-  }
-
-  /**
-   * @brief Return the initialization configuration for the specified chain,
-   * moving its position and mass out of this configuration.
-   *
-   * Other chains, the number of chains, and the dimensionality are unaffected.
-   *
-   * @param[in] n The chain index.
-   * @return The indexed chain's initialization configuration.
-   */
-  InitChainConfig init_chain_config(std::size_t n) && {
-    return InitChainConfig(step_sizes_[n], std::move(positions_[n]),
-                           std::move(masses_[n]));
   }
 
  private:
@@ -192,22 +166,19 @@ class InitConfig {
    * called internally. It only implements rvalue moves because that
    * is the only way it is called.
    *
-   * @param[in] dims The dimensionality.
    * @param[in] step_sizes The step sizes.
    * @param[in] positions The positions.
    * @param[in] masses The diagonals of the diagonal mass matrixes.
    */
-  InitConfig(std::size_t dims, std::vector<double>&& step_sizes,
+  InitConfig(std::vector<double>&& step_sizes,
              std::vector<Eigen::VectorXd>&& positions,
              std::vector<Eigen::VectorXd>&& masses)
-      : dims_(dims),
-        step_sizes_(std::move(step_sizes)),
+      : step_sizes_(std::move(step_sizes)),
         positions_(std::move(positions)),
         masses_(std::move(masses)) {}
 
   InitConfig() = default;
 
-  std::size_t dims_ = 0;
   std::vector<double> step_sizes_;
   std::vector<Eigen::VectorXd> positions_;
   std::vector<Eigen::VectorXd> masses_;
@@ -482,8 +453,8 @@ class InitConfigBuilder {
    * @return The initialization configuration.
    */
   InitConfig build() {
-    return InitConfig{num_chains_ == 0 ? 0 : dims_, std::move(step_sizes_),
-                      std::move(positions_), std::move(masses_)};
+    return InitConfig{std::move(step_sizes_), std::move(positions_),
+                      std::move(masses_)};
   }
 
   /**
@@ -1130,21 +1101,14 @@ class WalnutsConfig {
   WalnutsConfig(InitConfig init, WarmupConfig warmup, SamplingConfig sampling)
       : init_(std::move(init)),
         warmup_(std::move(warmup)),
-        sampling_(std::move(sampling)){};
+        sampling_(std::move(sampling)) {};
 
   /**
    * @brief Return the initialization configuration.
    *
    * @return The initialization configuration.
    */
-  const InitConfig& init() const& noexcept { return init_; }
-
-  /**
-   * @brief Return the initialization configuration for moving.
-   *
-   * @return The initialization configuration.
-   */
-  InitConfig&& init() && noexcept { return std::move(init_); }
+  const InitConfig& init() const noexcept { return init_; }
 
   /**
    * @brief Return the warmup configuration.

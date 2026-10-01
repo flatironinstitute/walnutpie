@@ -459,27 +459,6 @@ TEST(InitConfig, InitChainConfigReturnsCorrectValues) {
   expect_near(cc.mass(), mass);
 }
 
-TEST(InitConfig, RvalueInitChainConfigMovesOnlyThatChain) {
-  Eigen::VectorXd pos(2);
-  pos << 1.0, 2.0;
-  Eigen::VectorXd mass(2);
-  mass << 3.0, 4.0;
-  walnutpie::InitConfig cfg = walnutpie::InitConfigBuilder(3, 2)
-                                  .step_sizes(0.25)
-                                  .positions(pos)
-                                  .masses(mass)
-                                  .build();
-  const double* data = cfg.position(1).data();
-  walnutpie::InitChainConfig cc = std::move(cfg).init_chain_config(1);
-  EXPECT_EQ(cc.position().data(), data);
-  expect_near(cc.position(), pos);
-  expect_near(cc.mass(), mass);
-  EXPECT_EQ(cfg.num_chains(), std::size_t{3});
-  EXPECT_EQ(cfg.dims(), std::size_t{2});
-  expect_near(cfg.position(0), pos);
-  expect_near(cfg.position(2), pos);
-}
-
 // chaining
 
 TEST(InitConfigBuilder, MethodChainingReturnsBuilder) {
