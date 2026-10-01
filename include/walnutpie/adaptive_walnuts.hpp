@@ -46,6 +46,9 @@ class MassEstimator {
    * variance estimator) and the inverse variance of the draws (the
    * variance estimator).
    *
+   * The warmup configuration is copied and elements of the initial
+   * chain configuration are copied.
+   *
    * @param[in] warmup_cfg The warmup configuration.
    * @param[in] init_cfg The initialization configuration.
    * @throw std::invalid_argument If the position and gradient are not the same
@@ -187,7 +190,7 @@ class AdaptiveWalnuts {
    *
    * The sampler copies the configuration values it needs. It holds the
    * random number generator, event handler, and log density/gradient
-   * function by reference.
+   * function by reference.  Components of the configurations are copied.
    *
    * @param[in,out] rng The base random number generator.
    * @param[in,out] handler Event handler for adaptation and sampling.
