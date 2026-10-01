@@ -109,17 +109,14 @@ TEST(EndpointReuse, FailuresKeepStoredEndpointUntilRecovery) {
   EXPECT_GT(handler.samples.back().first.norm(), 0);
 }
 
-// The returned sampler evaluates its endpoint at the final warmup position,
-// so freezing costs one evaluation.
 TEST(EndpointReuse, FreezeEvaluatesOnceAtFinalWarmupPosition) {
   Target target;
   Handler handler;
   std::mt19937_64 rng(17);
-  auto warmup_cfg = WarmupConfigBuilder().build();
-  auto sampling_cfg = SamplingConfigBuilder().build();
+  // Pass temporary configs to check ownership after construction.
   AdaptiveWalnuts<Target, std::mt19937_64, Handler> adaptive(
-      rng, handler, target, InitChainConfig(0.2, zero(), ones()), warmup_cfg,
-      sampling_cfg);
+      rng, handler, target, InitChainConfig(0.2, zero(), ones()),
+      WarmupConfigBuilder().build(), SamplingConfigBuilder().build());
   EXPECT_EQ(target.calls, 1);
   for (int i = 0; i < 20; ++i) {
     adaptive();
@@ -128,6 +125,11 @@ TEST(EndpointReuse, FreezeEvaluatesOnceAtFinalWarmupPosition) {
   auto sampler = adaptive.sampler();
   EXPECT_EQ(target.calls, calls + 1);
   EXPECT_EQ(target.last_evaluated, handler.last_warmup);
+  for (int i = 0; i < 10; ++i) {
+    sampler();
+  }
+  ASSERT_EQ(handler.samples.size(), 10u);
+  EXPECT_TRUE(handler.samples.back().first.allFinite());
 }
 
 }  // namespace
