@@ -187,9 +187,8 @@ class InitConfig {
 /**
  * @brief The builder for initialization configurations.
  *
- * The usage to return an `InitConfig` is
- * `InitConfigBuilder(4, 20).step_sizes(0.5).build();`
- * with any number of config methods
+ * The usage to return an `InitConfig` is `InitConfigBuilder(4,
+ * 20).step_sizes(0.5).build();` with any number of config methods
  * chained between the construction and call to build.
  */
 class InitConfigBuilder {
@@ -255,14 +254,27 @@ class InitConfigBuilder {
    * @throw std::invalid_argument If the initial scale is not finite and
    * positive.
    */
-  template <std::uniform_random_bit_generator RNG>
-  InitConfigBuilder& positions(RNG& rng, double init_scale) {
+  template <LogpGrad F, std::uniform_random_bit_generator RNG>
+  InitConfigBuilder& positions(const F& logp_grad, RNG& rng, double init_scale) {
     detail::validate_finite_positive(init_scale, "init_scale");
     detail::Random<RNG> rand(rng);
     positions_.resize(num_chains_);
     for (std::size_t c = 0; c < num_chains_; ++c) {
-      rand.standard_normal(static_cast<Eigen::Index>(dims_), positions_[c]);
-      positions_[c] *= init_scale;
+      bool ok = false;
+      for (std::size_t attempt = 0; attempt < 100; ++attempt) {
+	rand.standard_normal(static_cast<Eigen::Index>(dims_), positions_[c]);
+	positions_[c] *= init_scale;
+	if (detail::logp_grad_is_finite(logp_grad, positions_[c])) {
+	  ok = true;
+	  break;
+	}
+      }
+      if (!ok) {
+	std::string msg = "Initialization failed after 100 attempts."
+	  " This happens when 100 random initializations did not produce one"
+	  " with a finite log density and gradient.";
+	throw std::runtime_error(msg);
+      }
     }
     return *this;
   }

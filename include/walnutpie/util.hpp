@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <functional>
@@ -402,5 +403,23 @@ inline double variance(const Eigen::VectorXd& xs) noexcept {
   return (xs.array() - xs.mean()).square().sum() /
          static_cast<double>((xs.size() - 1));
 }
+
+/**
+ * @brief Return `true` if the log density and gradient function returns
+ * a finite log density and a gradient with finite elements.
+ *
+ * @tparam F The type of the log density and gradient function.
+ * @param logp_grad The log density and gradient function.
+ * @param theta The position to evaluate.
+ * @return `true` if the log density and gradients are finite at the position.
+ */
+template <LogpGrad F>  
+inline bool logp_grad_is_finite(const F& logp_grad,
+				const Eigen::VectorXd theta) {
+  Eigen::VectorXd grad;
+  double lp;
+  logp_grad(theta, lp, grad);
+  return std::isfinite(lp) && grad.allFinite();
+}    
 
 }  // namespace walnutpie::detail

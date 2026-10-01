@@ -8,6 +8,22 @@
 #include <walnutpie.hpp>
 #include "test_util.hpp"
 
+static void bad_lp(const Eigen::VectorXd& x, double& logp,
+		   Eigen::VectorXd& grad) {
+  logp = std::numeric_limits<double>::infinity();
+  grad = -x;
+}
+
+static void bad_grad(const Eigen::VectorXd& x, double& logp,
+		   Eigen::VectorXd& grad) {
+  logp = 0;
+  grad = x;
+  // assume x non-empty
+  grad[0] = std::numeric_limits<double>::infinity();
+}
+
+
+
 // class InitChainConfig ********************************************
 
 TEST(InitChainConfig, ConstructorStoresStepSize) {
@@ -233,12 +249,12 @@ TEST(InitConfigBuilder, MovePositionsThrowsOnNonFinite) {
   }
 }
 
-// positions (RNG, scale)
+// positions (logp_grad, RNG, scale)
 
 TEST(InitConfigBuilder, RandomPositionsHaveCorrectShape) {
   std::mt19937 rng(139872);
   walnutpie::InitConfig cfg =
-      walnutpie::InitConfigBuilder(3, 4).positions(rng, 1.0).build();
+    walnutpie::InitConfigBuilder(3, 4).positions(std_normal, rng, 1.0).build();
   EXPECT_EQ(cfg.positions().size(), std::size_t{3});
   for (std::size_t n = 0; n < 3; ++n) {
     EXPECT_EQ(cfg.position(n).size(), Eigen::Index{4});
@@ -248,9 +264,9 @@ TEST(InitConfigBuilder, RandomPositionsHaveCorrectShape) {
 TEST(InitConfigBuilder, RandomPositionsScaledByInitScale) {
   std::mt19937 rng1(876), rng2(876);
   walnutpie::InitConfig cfg1 =
-      walnutpie::InitConfigBuilder(2, 3).positions(rng1, 1.0).build();
+    walnutpie::InitConfigBuilder(2, 3).positions(std_normal, rng1, 1.0).build();
   walnutpie::InitConfig cfg2 =
-      walnutpie::InitConfigBuilder(2, 3).positions(rng2, 2.0).build();
+    walnutpie::InitConfigBuilder(2, 3).positions(std_normal, rng2, 2.0).build();
   for (std::size_t n = 0; n < 2; ++n) {
     expect_near(cfg2.position(n), (2.0 * cfg1.position(n)).eval());
   }
@@ -260,9 +276,19 @@ TEST(InitConfigBuilder, RandomPositionsThrowsOnNonPositiveScale) {
   for (auto x : inf_nan_neg_zero()) {
     std::mt19937 rng(58375232);
     walnutpie::InitConfigBuilder b(3, 2);
-    EXPECT_THROW(b.positions(rng, x), std::invalid_argument);
+    EXPECT_THROW(b.positions(std_normal, rng, x), std::invalid_argument);
   }
 }
+
+TEST(InitConfigBuilder, BadLogDensity) {
+  std::mt19937 rng(58375232);
+  walnutpie::InitConfigBuilder b(3, 2);
+  Eigen::VectorXd v(2);
+  EXPECT_THROW(b.positions(bad_lp, rng, 2.0), std::runtime_error);
+  EXPECT_THROW(b.positions(bad_grad, rng, 2.0), std::runtime_error);
+}
+
+
 
 // masses (VectorXd)
 
@@ -416,13 +442,13 @@ TEST(InitConfigBuilder, LogpGradMassesAveraged) {
   for (auto sz : std::vector<double>{1, 2, 9, 32}) {
     std::mt19937 rng(139872);
     auto init_config = walnutpie::InitConfigBuilder(sz, sz)
-                           .positions(rng, 1.0)
+                           .positions(std_normal, rng, 1.0)
                            .masses(std_normal, 0.01, false)
                            .build();
 
     std::mt19937 rng_avg(139872);
     auto init_config_avg = walnutpie::InitConfigBuilder(sz, sz)
-                               .positions(rng_avg, 1.0)
+                               .positions(std_normal, rng_avg, 1.0)
                                .masses(std_normal, 0.01, true)
                                .build();
 
