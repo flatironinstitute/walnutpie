@@ -422,4 +422,16 @@ inline bool logp_grad_is_finite(const F& logp_grad,
   return std::isfinite(lp) && grad.allFinite();
 }    
 
+/** 
+ * @brief Return the geometric mean of the specified sequence of vectors.
+ *
+ * @param xs The vectors to average.
+ * @return The geometric mean of the vectors.
+ */
+inline Eigen::VectorXd geometric_mean(const std::vector<Eigen::VectorXd>& xs) {
+  Eigen::ArrayXd sum_log = Eigen::ArrayXd::Zero(xs.front().size());
+  for (const auto& x : xs) sum_log += x.array().log();
+  return (sum_log / static_cast<double>(xs.size())).exp().matrix();
+}
+
 }  // namespace walnutpie::detail
