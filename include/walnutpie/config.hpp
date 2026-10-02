@@ -245,9 +245,11 @@ class InitConfigBuilder {
    *
    * Initialization is independent in each dimension with values drawn
    * from a zero-centered normal distribution with the specified
-   * scale.
+   * scale.  Initialization is retried up to 100 times unitl the
+   * log density and gradient is finite at the initial position.
    *
    * @tparam RNG The type of the base random number generator.
+   * @param[in] logp_grad The log density and gradient function.
    * @param[in,out] rng The base random number generator.
    * @param[in] init_scale The scale of the normal initial values.
    * @return A reference to this builder for chaining.
