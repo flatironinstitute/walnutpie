@@ -93,7 +93,9 @@ class MassEstimator {
     return (draw_var_estimator_.variance().array() /
             score_var_estimator_.variance().array())
         .sqrt()
-        .matrix();
+        .matrix()
+        .cwiseMin(1e-10)
+        .cwiseMax(1e10);
   }
 
  private:

@@ -80,3 +80,10 @@ static void std_normal(const Eigen::VectorXd& x, double& lp,
   lp = -0.5 * x.dot(x);
   grad = -x;
 }
+
+Eigen::VectorXd vec(std::initializer_list<double> xs) {
+  Eigen::VectorXd v(static_cast<Eigen::Index>(xs.size()));
+  Eigen::Index i = 0;
+  for (double x : xs) v(i++) = x;
+  return v;
+}

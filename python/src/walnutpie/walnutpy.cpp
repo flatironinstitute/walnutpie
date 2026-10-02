@@ -186,7 +186,7 @@ WALNUTPY_EXPORT int walnutpie_sample_cfunc(
     } else {
       std::seed_seq ss{seed, 1u};
       std::mt19937_64 rng(ss);
-      init_cfg_builder.positions(rng, init_radius);
+      init_cfg_builder.positions(logp, rng, init_radius);
     }
 
     std::vector<PythonPrinter> printers;

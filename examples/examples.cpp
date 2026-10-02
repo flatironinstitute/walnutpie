@@ -6,9 +6,6 @@
 #include <walnutpie.hpp>
 #include "handlers.hpp"
 
-static double total_time = 0.0;
-static std::size_t count = 0;
-
 // p(y) = normal(y | 0, I)
 static void std_normal(const Eigen::VectorXd& x, double& logp,
                        Eigen::VectorXd& grad) {
@@ -85,7 +82,7 @@ static void run_adaptive_walnuts(F& target_logp_grad) {
   std::size_t D = 100;
 
   auto init_cfg = walnutpie::InitConfigBuilder(num_chains, D)
-                      .positions(rng, 1.0)
+                      .positions(target_logp_grad, rng, 1.0)
                       .masses(target_logp_grad, 0.01)
                       .build();
 

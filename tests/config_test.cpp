@@ -8,6 +8,22 @@
 #include <walnutpie.hpp>
 #include "test_util.hpp"
 
+static void bad_lp(const Eigen::VectorXd& x, double& logp,
+		   Eigen::VectorXd& grad) {
+  logp = std::numeric_limits<double>::infinity();
+  grad = -x;
+}
+
+static void bad_grad(const Eigen::VectorXd& x, double& logp,
+		   Eigen::VectorXd& grad) {
+  logp = 0;
+  grad = x;
+  // assume x non-empty
+  grad[0] = std::numeric_limits<double>::infinity();
+}
+
+
+
 // class InitChainConfig ********************************************
 
 TEST(InitChainConfig, ConstructorStoresStepSize) {
@@ -233,12 +249,12 @@ TEST(InitConfigBuilder, MovePositionsThrowsOnNonFinite) {
   }
 }
 
-// positions (RNG, scale)
+// positions (logp_grad, RNG, scale)
 
 TEST(InitConfigBuilder, RandomPositionsHaveCorrectShape) {
   std::mt19937 rng(139872);
   walnutpie::InitConfig cfg =
-      walnutpie::InitConfigBuilder(3, 4).positions(rng, 1.0).build();
+    walnutpie::InitConfigBuilder(3, 4).positions(std_normal, rng, 1.0).build();
   EXPECT_EQ(cfg.positions().size(), std::size_t{3});
   for (std::size_t n = 0; n < 3; ++n) {
     EXPECT_EQ(cfg.position(n).size(), Eigen::Index{4});
@@ -248,9 +264,9 @@ TEST(InitConfigBuilder, RandomPositionsHaveCorrectShape) {
 TEST(InitConfigBuilder, RandomPositionsScaledByInitScale) {
   std::mt19937 rng1(876), rng2(876);
   walnutpie::InitConfig cfg1 =
-      walnutpie::InitConfigBuilder(2, 3).positions(rng1, 1.0).build();
+    walnutpie::InitConfigBuilder(2, 3).positions(std_normal, rng1, 1.0).build();
   walnutpie::InitConfig cfg2 =
-      walnutpie::InitConfigBuilder(2, 3).positions(rng2, 2.0).build();
+    walnutpie::InitConfigBuilder(2, 3).positions(std_normal, rng2, 2.0).build();
   for (std::size_t n = 0; n < 2; ++n) {
     expect_near(cfg2.position(n), (2.0 * cfg1.position(n)).eval());
   }
@@ -260,9 +276,19 @@ TEST(InitConfigBuilder, RandomPositionsThrowsOnNonPositiveScale) {
   for (auto x : inf_nan_neg_zero()) {
     std::mt19937 rng(58375232);
     walnutpie::InitConfigBuilder b(3, 2);
-    EXPECT_THROW(b.positions(rng, x), std::invalid_argument);
+    EXPECT_THROW(b.positions(std_normal, rng, x), std::invalid_argument);
   }
 }
+
+TEST(InitConfigBuilder, BadLogDensity) {
+  std::mt19937 rng(58375232);
+  walnutpie::InitConfigBuilder b(3, 2);
+  Eigen::VectorXd v(2);
+  EXPECT_THROW(b.positions(bad_lp, rng, 2.0), std::runtime_error);
+  EXPECT_THROW(b.positions(bad_grad, rng, 2.0), std::runtime_error);
+}
+
+
 
 // masses (VectorXd)
 
@@ -380,29 +406,12 @@ TEST(InitConfigBuilder, LogpGradMassesHaveCorrectShape) {
   }
 }
 
-TEST(InitConfigBuilder, LogpGradMassesMatchHandCalculation) {
-  // pos = [1, 2];  grad = [-1, -2];  smooth = 0.5
-  // mass = (1 - smooth) * abs(grad) + smooth
-  //      = 0.5 * [1, 2] + 0.5 = [1, 0.5 * sqrt(2) + 0.5]
-  Eigen::VectorXd pos(2);
-  pos << 1.0, 2.0;
-  const double s = 0.5;
-  walnutpie::InitConfig cfg = walnutpie::InitConfigBuilder(1, 2)
-                                  .positions(pos)
-                                  .masses(std_normal, s)
-                                  .build();
-  Eigen::VectorXd expected(2);
-  expected(0) = (1 - s) * 1.0 + s;
-  expected(1) = (1 - s) * 2.0 + s;
-  expect_near(cfg.mass(0), expected);
-}
-
 TEST(InitConfigBuilder, LogpGradMassesOneThrows) {
-  Eigen::VectorXd pos(2);
-  pos << 100.0, -50.0;
+  Eigen::VectorXd pos = vec({100.0, -50.0});
   auto builder = walnutpie::InitConfigBuilder(2, 2);
   auto& builder_chain = builder.positions(pos);
-  EXPECT_THROW(builder_chain.masses(std_normal, 1.0), std::invalid_argument);
+  EXPECT_THROW(builder_chain.masses(std_normal, -1.0), std::invalid_argument);
+  EXPECT_THROW(builder_chain.masses(std_normal, 2.0, true, -1.0), std::invalid_argument);
 }
 
 TEST(InitConfigBuilder, LogpGradMassesThrowsOnInvalidSmoothing) {
@@ -412,32 +421,109 @@ TEST(InitConfigBuilder, LogpGradMassesThrowsOnInvalidSmoothing) {
   }
 }
 
+TEST(InitConfigBuilder, LogpGradMassesMatchHandCalculation) {
+  // pos = [1, -2] => grad = [-1, 2];  mass = |grad| + s = [1.5, 2.5]
+  const double s = 0.5;
+  walnutpie::InitConfig cfg = walnutpie::InitConfigBuilder(1, 2)
+                                  .positions(vec({1.0, -2.0}))
+                                  .masses(std_normal, s)
+                                  .build();
+  expect_near(cfg.mass(0), vec({1.0 + s, 2.0 + s}));
+}
+
+TEST(InitConfigBuilder, LogpGradMassesRepeatedCallDoesNotAccumulate) {
+  const double s = 0.5;
+  walnutpie::InitConfig cfg = walnutpie::InitConfigBuilder(1, 2)
+                                  .positions(vec({1.0, -2.0}))
+                                  .masses(std_normal, s)
+                                  .masses(std_normal, s)
+                                  .build();
+  expect_near(cfg.mass(0), vec({1.0 + s, 2.0 + s}));
+}
+
+TEST(InitConfigBuilder, LogpGradMassesClampedAtMax) {
+  // pos = [1, -100, 9.5] => |grad| + s = [1.5, 100.5, 10];  max = 10
+  // second entry clamped; third sits exactly at max and is unchanged
+  const double s = 0.5;
+  const double max_mass = 10.0;
+  walnutpie::InitConfig cfg = walnutpie::InitConfigBuilder(1, 3)
+                                  .positions(vec({1.0, -100.0, 9.5}))
+                                  .masses(std_normal, s, false, max_mass)
+                                  .build();
+  expect_near(cfg.mass(0), vec({1.5, max_mass, max_mass}));
+}
+
+TEST(InitConfigBuilder, LogpGradMassesUnaveragedArePerChain) {
+  // s = 1:  chain 0 pos [1, -2] => [2, 3];  chain 1 pos [3, -8] => [4, 9]
+  walnutpie::InitConfig cfg =
+      walnutpie::InitConfigBuilder(2, 2)
+          .positions(std::vector<Eigen::VectorXd>{vec({1.0, -2.0}),
+                                                  vec({3.0, -8.0})})
+          .masses(std_normal, 1.0, false, 1e10)
+          .build();
+  expect_near(cfg.mass(0), vec({2.0, 3.0}));
+  expect_near(cfg.mass(1), vec({4.0, 9.0}));
+}
+
+TEST(InitConfigBuilder, LogpGradMassesGeometricAverage) {
+  // per-chain [2, 3] and [4, 9];  geometric mean = [sqrt(8), sqrt(27)]
+  walnutpie::InitConfig cfg =
+      walnutpie::InitConfigBuilder(2, 2)
+          .positions(std::vector<Eigen::VectorXd>{vec({1.0, -2.0}),
+                                                  vec({3.0, -8.0})})
+          .masses(std_normal, 1.0, true, 1e10)
+          .build();
+  Eigen::VectorXd expected = vec({std::sqrt(8.0), std::sqrt(27.0)});
+  expect_near(cfg.mass(0), expected);
+  expect_near(cfg.mass(1), expected);
+}
+
+TEST(InitConfigBuilder, LogpGradMassesClampBeforeAverage) {
+  // per-chain [2, 3] and [4, 9] clamped at 5 => [2, 3] and [4, 5]
+  // geometric mean = [sqrt(8), sqrt(15)]
+  walnutpie::InitConfig cfg =
+      walnutpie::InitConfigBuilder(2, 2)
+          .positions(std::vector<Eigen::VectorXd>{vec({1.0, -2.0}),
+                                                  vec({3.0, -8.0})})
+           .masses(std_normal, 1.0, true, 5.0)
+          .build();
+  Eigen::VectorXd expected = vec({std::sqrt(8.0), std::sqrt(15.0)});
+  expect_near(cfg.mass(0), expected);
+  expect_near(cfg.mass(1), expected);
+}
+
 TEST(InitConfigBuilder, LogpGradMassesAveraged) {
   for (auto sz : std::vector<double>{1, 2, 9, 32}) {
     std::mt19937 rng(139872);
     auto init_config = walnutpie::InitConfigBuilder(sz, sz)
-                           .positions(rng, 1.0)
-                           .masses(std_normal, 0.01, false)
+                           .positions(std_normal, rng, 0.01)  // near one another 
+                           .masses(std_normal, 0.01, true, 1e2)
                            .build();
-
-    std::mt19937 rng_avg(139872);
-    auto init_config_avg = walnutpie::InitConfigBuilder(sz, sz)
-                               .positions(rng_avg, 1.0)
-                               .masses(std_normal, 0.01, true)
-                               .build();
-
-    auto masses = init_config.masses();
-    Eigen::VectorXd log_mass_sum = Eigen::VectorXd::Zero(sz);
-    for (const auto& mass : masses) {
-      log_mass_sum += mass.array().log().matrix();
+    auto mass_expected = init_config.masses()[0];
+    for (const auto& mass : init_config.masses()) {
+      expect_near(mass_expected, mass, 0.1);
     }
-    auto mass_geom_avg = (log_mass_sum / sz).array().exp().matrix().eval();
+  }
+}
 
-    std::cout << "avg: " << mass_geom_avg.transpose() << std::endl;
-    for (const auto& mass : init_config_avg.masses()) {
-      std::cout << "mass: " << mass.transpose() << std::endl;
-      // expect_near(mass, mass_geom_avg, 1e-10);
-    }
+
+TEST(InitConfigBuilder, LogpGradMassesAveragedMatchHandCalculation) {
+  // std_normal: mass = |theta| + s, s = 0.5
+  //   chain 0: theta = [ 0.5,   0.5, 0.0] => [ 1,  1, 0.5]
+  //   chain 1: theta = [-3.5,   7.5, 1.5] => [ 4,  8, 2  ]
+  //   chain 2: theta = [15.5, -26.5, -0.5] => [16, 27, 1  ]
+  //   geometric mean: [4, 6, 1]
+  const double s = 0.5;
+  walnutpie::InitConfig cfg =
+      walnutpie::InitConfigBuilder(3, 3)
+          .positions(std::vector<Eigen::VectorXd>{vec({0.5, 0.5, 0.0}),
+                                                  vec({-3.5, 7.5, 1.5}),
+                                                  vec({15.5, -26.5, -0.5})})
+          .masses(std_normal, s, /*average_masses=*/true)
+          .build();
+  Eigen::VectorXd expected = vec({4.0, 6.0, 1.0});
+  for (std::size_t c = 0; c < 3; ++c) {
+    expect_near(cfg.mass(c), expected);
   }
 }
 

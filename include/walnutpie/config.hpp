@@ -187,9 +187,8 @@ class InitConfig {
 /**
  * @brief The builder for initialization configurations.
  *
- * The usage to return an `InitConfig` is
- * `InitConfigBuilder(4, 20).step_sizes(0.5).build();`
- * with any number of config methods
+ * The usage to return an `InitConfig` is `InitConfigBuilder(4,
+ * 20).step_sizes(0.5).build();` with any number of config methods
  * chained between the construction and call to build.
  */
 class InitConfigBuilder {
@@ -246,23 +245,38 @@ class InitConfigBuilder {
    *
    * Initialization is independent in each dimension with values drawn
    * from a zero-centered normal distribution with the specified
-   * scale.
+   * scale.  Initialization is retried up to 100 times unitl the
+   * log density and gradient is finite at the initial position.
    *
    * @tparam RNG The type of the base random number generator.
+   * @param[in] logp_grad The log density and gradient function.
    * @param[in,out] rng The base random number generator.
    * @param[in] init_scale The scale of the normal initial values.
    * @return A reference to this builder for chaining.
    * @throw std::invalid_argument If the initial scale is not finite and
    * positive.
    */
-  template <std::uniform_random_bit_generator RNG>
-  InitConfigBuilder& positions(RNG& rng, double init_scale) {
+  template <LogpGrad F, std::uniform_random_bit_generator RNG>
+  InitConfigBuilder& positions(const F& logp_grad, RNG& rng, double init_scale) {
     detail::validate_finite_positive(init_scale, "init_scale");
     detail::Random<RNG> rand(rng);
     positions_.resize(num_chains_);
     for (std::size_t c = 0; c < num_chains_; ++c) {
-      rand.standard_normal(static_cast<Eigen::Index>(dims_), positions_[c]);
-      positions_[c] *= init_scale;
+      bool ok = false;
+      for (std::size_t attempt = 0; attempt < 100; ++attempt) {
+	rand.standard_normal(static_cast<Eigen::Index>(dims_), positions_[c]);
+	positions_[c] *= init_scale;
+	if (detail::logp_grad_is_finite(logp_grad, positions_[c])) {
+	  ok = true;
+	  break;
+	}
+      }
+      if (!ok) {
+	std::string msg = "Initialization failed after 100 attempts."
+	  " This happens when 100 random initializations did not produce one"
+	  " with a finite log density and gradient.";
+	throw std::runtime_error(msg);
+      }
     }
     return *this;
   }
@@ -333,6 +347,10 @@ class InitConfigBuilder {
   /**
    * @brief Initialize the masses using the Nutpie outer product strategy.
    *
+   * Because this function uses the positions, the positions should be
+   * set beyond their default zero values before calling it or the mass
+   * matrices will all be initialized at unity.
+   *
    * Following Nutpie, the initialization uses a smoothed negative
    * outer product of gradient, which is the absolute value of the
    * outer product of gradients linearly interpolated with a unit
@@ -351,32 +369,31 @@ class InitConfigBuilder {
    *
    * @tparam LPG The type of the log density and gradient function.
    * @param[in] logp_grad The log density and gradient function, called back.
-   * @param[in] mass_smoothing The additive smoothing for mass matrices.
-   * @param[in] average_masses Set to `true` to geometrically average mass
-   * matrices.
+   * @param[in] additive_smoothing The additive smoothing for mass matrices.
+   * @param[in] average_masses Set to `true` to geometrically average
+   * mass matrices.
+   * @param[in] max_mass_entry Upper bound of mass matrix diagonal
+   * values for clamping.
    * @throw std::invalid_argumet If the mass smoothing is not in (0, 1).
    * @return A reference to this builder for chaining.
    */
   template <LogpGrad F>
-  InitConfigBuilder& masses(const F& logp_grad, double mass_smoothing,
-                            bool average_masses = false) {
-    detail::validate_probability(mass_smoothing, "mass_smoothing");
+  InitConfigBuilder& masses(const F& logp_grad, double additive_smoothing,
+                            bool average_masses = false,
+			    double max_mass_entry = 1e10) {
+    detail::validate_positive(additive_smoothing, "additive_smoothing");
+    detail::validate_positive(max_mass_entry, "max_mass_entry");
     Eigen::VectorXd grad;
     masses_.resize(num_chains_);
     for (std::size_t c = 0; c < num_chains_; ++c) {
       double lp_to_discard;
       logp_grad(positions_[c], lp_to_discard, grad);
-      masses_[c] = (1 - mass_smoothing) * grad.array().abs() + mass_smoothing;
+      masses_[c] = (grad.array().abs()
+		    + additive_smoothing).cwiseMin(max_mass_entry).matrix();
     }
     if (average_masses) {
-      Eigen::Index D = masses_[0].size();
-      Eigen::VectorXd sum_log_mass = Eigen::VectorXd::Zero(D);
-      for (const auto& mass : masses_) {
-        sum_log_mass += mass.array().log().matrix();
-      }
-      auto avg_log_mass = sum_log_mass / num_chains_;
-      auto geom_mean_mass = avg_log_mass.array().exp().matrix();
-      masses_ = std::vector<Eigen::VectorXd>(num_chains_, geom_mean_mass);
+      masses_ = std::vector<Eigen::VectorXd>(num_chains_,
+					     detail::geometric_mean(masses_));
     }
     return *this;
   }
