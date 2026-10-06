@@ -86,22 +86,16 @@ class MassEstimator {
         			      + static_cast<double>(iteration));
 
     // with this, mass init count not doing anything 
-    if (iteration < 4) {
-      discount_factor = 0.8;
-    } else if (iteration < 10) {
+    if (iteration < 10) {
       discount_factor = 0.6;
     } else if (iteration < 20) {
       discount_factor = 0.7;
     } else if (iteration < 50) {
-      discount_factor = 0.75;
-    } else if (iteration < 100) {
       discount_factor = 0.8;
-    } else if (iteration < 200) {
+    } else if (iteration < 100) {
       discount_factor = 0.9;
-    } else if (iteration < 400) {
+    } else if (iteration < 200) {
       discount_factor = 0.95;
-    } else if (iteration < 800) {
-      discount_factor = 0.99;
     }
     
     
@@ -117,10 +111,12 @@ class MassEstimator {
    * @return The inverse mass matrix estimate.
    */
   Eigen::VectorXd inv_mass_estimate() const {
-    return (draw_var_estimator_.variance().array() /
-            score_var_estimator_.variance().array())
-        .sqrt()
-        .matrix();
+    return  (draw_var_estimator_.variance().array()
+	     / score_var_estimator_.variance().array())
+      .sqrt()
+      .matrix()
+      .cwiseMax(1e-20)
+      .cwiseMin(1e20);
   }
 
  private:

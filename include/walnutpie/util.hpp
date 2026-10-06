@@ -13,6 +13,8 @@
 
 #include "walnutpie/concepts.hpp"
 
+#include <iostream> // TODO(carpenter): remove me
+
 namespace walnutpie::detail {
 
 #if defined(__has_attribute) && __has_attribute(always_inline)
@@ -222,6 +224,13 @@ inline double logp_momentum(const Eigen::VectorXd& rho,
   return -0.5 * (inv_mass_diag.array() * rho.array().square()).sum();
 }
 
+inline void soft_clip(Eigen::VectorXd& grad, double clip_scale = 1e10, double clip_threshold = 1e9) noexcept {
+  if (grad.cwiseAbs().maxCoeff() > clip_threshold
+      || grad.cwiseAbs().minCoeff() < 1.0 / clip_threshold) {
+    grad.array() = clip_scale * (grad.array() / clip_scale).asinh();
+  }
+}  
+
 /**
  * @brief Return the difference in log density (negative Hamiltonian)
  * between the intial position and momentum and the result of taking
@@ -246,12 +255,14 @@ double leapfrog_error(const F& logp_grad, const Eigen::VectorXd& theta,
   Eigen::VectorXd grad;
   double logp;
   logp_grad(theta, logp, grad);
+  detail::soft_clip(grad);
   logp += detail::logp_momentum(rho, inv_M);
   Eigen::VectorXd rho_star = rho + 0.5 * step * grad;
   Eigen::VectorXd theta_star =
       theta + step * (inv_M.array() * rho_star.array()).matrix();
   double logp_star;
   logp_grad(theta_star, logp_star, grad);
+  detail::soft_clip(grad);
   rho_star = rho_star + 0.5 * step * grad;
   logp_star += detail::logp_momentum(rho_star, inv_M);
   double diff = logp_star - logp;
@@ -292,8 +303,8 @@ double adapt_step(RNG& rng, const F& logp_grad, const Eigen::VectorXd& theta,
        M.array().sqrt())
           .matrix();
   while (detail::leapfrog_error(logp_grad, theta, rho, inv_M, step) >
-         std::log(0.9)) {
-    step *= 2;
+         std::log(0.8)) {
+    step *= std::sqrt(2);
   }
   while (detail::leapfrog_error(logp_grad, theta, rho, inv_M, step) <
          std::log(0.6)) {
@@ -302,12 +313,60 @@ double adapt_step(RNG& rng, const F& logp_grad, const Eigen::VectorXd& theta,
   return step;
 }
 
+// /**
+//  * @brief A wrapper for a log density and gradient function that traps
+//  * exceptions.
+//  *
+//  * @tparam F Type of underlying log density and gradient function.
+//  */
+// template <LogpGrad F, ErrorCallback H>
+// class NoExceptLogpGrad {
+//  public:
+//   /**
+//    * @brief Construct a log density and gradient function from a base
+//    * log density and gradient function.
+//    *
+//    * The log density and gradient function will be stored as a
+//    * constant reference.
+//    *
+//    * @param[in] logp_grad The base log density and gradient function, called
+//    * back.
+//    * @param[in] handler The sample handler, used when exceptions are thrown.
+//    */
+//   NoExceptLogpGrad(const F& logp_grad, H& handler)
+//       : logp_grad_(std::cref(logp_grad)), handler_(handler) {}
+
+//   /**
+//    * @brief Given the specified position, set the log density and
+//    * gradient.
+//    *
+//    * @param[in] x The position vector.
+//    * @param[out] logp The log density to set.
+//    * @param[out] grad The gradient to set.
+//    */
+//   void operator()(const Eigen::VectorXd& x, double& logp,
+//                   Eigen::VectorXd& grad) const noexcept {
+//     try {
+//       logp_grad_.get()(x, logp, grad);
+//     } catch (const std::exception& e) {
+//       handler_.get().on_logp_exception(x, e);
+//       // logp_grad failure equivalent to -inf log density
+//       logp = -std::numeric_limits<double>::infinity();
+//       grad.setZero(x.size());
+//     }
+//   }
+
+//   /** The log density and gradient function. */
+//   const std::reference_wrapper<const F> logp_grad_;
+//   const std::reference_wrapper<H> handler_;
+// };
+
 /**
  * @brief A wrapper for a log density and gradient function that traps
- * exceptions.
+ * exceptions and clamps gradients.
  *
  * @tparam F Type of underlying log density and gradient function.
- */
+ */  
 template <LogpGrad F, ErrorCallback H>
 class NoExceptLogpGrad {
  public:
@@ -315,19 +374,28 @@ class NoExceptLogpGrad {
    * @brief Construct a log density and gradient function from a base
    * log density and gradient function.
    *
-   * The log density and gradient function will be stored as a
-   * constant reference.
+   * Gradients are soft clipped elementwise by `g -> s * asinh(g / s)`,
+   * which is the identity to within relative error `(g / s)^2 / 6` and
+   * grows logarithmically beyond `s`.  The transform is skipped
+   * entirely unless some component exceeds `clip_threshold`.  Setting
+   * `clip_threshold` to infinity disables clipping.
    *
-   * @param[in] logp_grad The base log density and gradient function, called
-   * back.
+   * @param[in] logp_grad The base log density and gradient function.
    * @param[in] handler The sample handler, used when exceptions are thrown.
+   * @param[in] clip_scale The scale `s` at which clipping takes effect.
+   * @param[in] clip_threshold Max absolute gradient below which the
+   * gradient is returned unmodified.
    */
-  NoExceptLogpGrad(const F& logp_grad, H& handler)
-      : logp_grad_(std::cref(logp_grad)), handler_(handler) {}
+  NoExceptLogpGrad(const F& logp_grad, H& handler,
+                   double clip_scale = 1e10, double clip_threshold = 1e9)
+      : logp_grad_(std::cref(logp_grad)),
+        handler_(handler),
+        clip_scale_(clip_scale),
+        clip_threshold_(clip_threshold) { }
 
   /**
    * @brief Given the specified position, set the log density and
-   * gradient.
+   * soft-clipped gradient.
    *
    * @param[in] x The position vector.
    * @param[out] logp The log density to set.
@@ -337,6 +405,8 @@ class NoExceptLogpGrad {
                   Eigen::VectorXd& grad) const noexcept {
     try {
       logp_grad_.get()(x, logp, grad);
+      soft_clip(grad, clip_scale_, clip_threshold_);
+      // std::cout << "grad = " << grad.transpose() << "\n";
     } catch (const std::exception& e) {
       handler_.get().on_logp_exception(x, e);
       // logp_grad failure equivalent to -inf log density
@@ -348,7 +418,11 @@ class NoExceptLogpGrad {
   /** The log density and gradient function. */
   const std::reference_wrapper<const F> logp_grad_;
   const std::reference_wrapper<H> handler_;
-};
+
+ private:
+  const double clip_scale_;
+  const double clip_threshold_;
+};  
 
 /**
  * @brief Return the gradient of the log density at the specified position.

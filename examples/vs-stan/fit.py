@@ -14,10 +14,10 @@ from cmdstanpy import CmdStanModel
 warnings.simplefilter(action="ignore", category=FutureWarning)
 cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
-SEED = 111111
-ITER_WARMUP = 1000
+SEED = 456654
+ITER_WARMUP = 400
 MIN_ITER_WARMUP = ITER_WARMUP
-ITER = 1000
+ITER = 400
 MIN_ITER = ITER
 NUM_CHAINS = 16
 METRIC_PER_LINE = 100
@@ -29,7 +29,7 @@ STAN_JSON_PAIRS = [
     ("eight-schools/eight_schools_noncentered.stan", "eight-schools/eight_schools.json"),
 
     ("time-series/arK.stan", "time-series/arK.json"),
-    ("time-series/arma11.stan", "time-series/arma.json"),   # fails on small inits
+    ("time-series/arma11.stan", "time-series/arma.json"),   # fails on 
     ("time-series/garch11.stan", "time-series/garch.json"),
 
     ("normal/std-normal.stan", "normal/std-normal.json"),
@@ -62,7 +62,7 @@ STAN_JSON_PAIRS = [
    ("seeds/seeds_centered_model.stan", "seeds/seeds_data.json"),
    ("seeds/seeds_stanified_model.stan", "seeds/seeds_data.json"),
 
-   ("rats/rats_model.stan", "rats/rats_data.json"),   # not fitting well in Walnutpie with small warmup, warmup min/max off
+   ("rats/rats_model.stan", "rats/rats_data.json"),  # hard for Walnutpie
 
    ("prophet/prophet.stan", "prophet/rstan_downloads.json"),
 
@@ -77,7 +77,7 @@ STAN_JSON_PAIRS = [
 
    ("election/election88_full.stan", "election/election88.json"),
 
-   ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slowe
+   ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slower
 
     ("diamonds/diamonds.stan", "diamonds/diamonds.json"),   # 2.4 MB data, slow
 
@@ -97,7 +97,7 @@ STAN_JSON_PAIRS = [
 
     ("kid/kidscore_interaction.stan", "kid/kidiq.json"),
 
-    ("blr/blr.stan", "blr/sblrc.json"),  # requires > 400 warmup iterations for Walnutpie, but not Nutpie; much slower @ 1000 warmup
+    ("blr/blr.stan", "blr/sblrc.json"),  # bad for Walnutpie, but works in Nutpie
 
     ("radon/radon_pooled.stan", "radon/radon_mn.json"),
     ("radon/radon_pooled.stan", "radon/radon_all.json"),
@@ -105,6 +105,12 @@ STAN_JSON_PAIRS = [
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
 
     ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
+
+#    (
+#        "measurement_error/measurement_error.stan",
+#        "measurement_error/measurement_error_5.json",   # very big funnel doesn't fit well
+#    ),    
+
 #    ("gp/gp_pois_regr.stan", "gp/gp_pois_regr.json"),   # seg faults Nutpie (maybe bad config?)
 
 #    ("mnist/nn_rbm1bJ10.stan", "mnist/mnist_100.json"),  # can do if crank down iterations or wait, but very slow with 8K params
@@ -385,18 +391,18 @@ def fit_walnutpie_one(stan_file, data_file, seed=SEED):
         min_sampling_iter=MIN_ITER,
         max_sampling_iter=ITER,
         max_trajectory_doublings=10,  # 5 Walnutpie, 10 Good
-        max_step_halvings=1,  # 5 Walnutpie, 5 good,
-        # min_micro_steps=1,
+        max_step_halvings=1,  # 5 Walnutpie, 5 good, 1 is Nuts
+        min_micro_steps=1,
         max_macro_steps_target=1024,  # XXXX 16.0 Walnutpie, 16 Good
-        init_radius=0.5,  # 2.0 Walnutpie, 0.1 Good
+        init_radius=0.1,  # 2.0 Walnutpie, 0.1 Good
         step_size_init=0.5,  # 1.0 Walnutpie, 0.1 Good
         max_hamiltonian_error=1e6,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
         mass_init_count=4.0,  # XXXX 4.0 Walnutpie, 1.01 Good
         rhat_converge_tol=1.01,  # 1.01 Walnutpie
-        step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.9 Good
-        step_learning_rate=0.1,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
-        step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
-        step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
+        step_accept_rate_target=0.9,  # 0.8 Walnutpie, 0.9 Good
+        step_learning_rate=0.05,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
+        step_gradient_decay=0.9,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
+        step_sq_gradient_decay=0.95,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
         step_stabilization=1e-7,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
         step_learn_rate_decay=0.5,  # 0.5 Walnutpie, 0.5 Good
         # init_inv_metric=np.ones(model.param_unc_num()),

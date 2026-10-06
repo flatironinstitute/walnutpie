@@ -14,6 +14,8 @@
 #include "walnutpie/util.hpp"
 #include "walnutpie/validate.hpp"
 
+#include <iostream> // TODO(bob): REMOVE ME
+
 namespace walnutpie {
 
 /**
@@ -359,14 +361,16 @@ class InitConfigBuilder {
    */
   template <LogpGrad F>
   InitConfigBuilder& masses(const F& logp_grad, double mass_smoothing,
-                            bool average_masses = false) {
+                            bool average_masses = true) {
     detail::validate_probability(mass_smoothing, "mass_smoothing");
     Eigen::VectorXd grad;
     masses_.resize(num_chains_);
     for (std::size_t c = 0; c < num_chains_; ++c) {
       double lp_to_discard;
       logp_grad(positions_[c], lp_to_discard, grad);
-      masses_[c] = (1 - mass_smoothing) * grad.array().abs() + mass_smoothing;
+      detail::soft_clip(grad, 1e10, 1e9);
+      masses_[c] = grad.cwiseAbs().cwiseMax(1e-20).cwiseMin(1e20); 
+      // masses_[c] = (1 - mass_smoothing) * grad.array().abs() + mass_smoothing;
     }
     if (average_masses) {
       Eigen::Index D = masses_[0].size();
@@ -378,6 +382,11 @@ class InitConfigBuilder {
       auto geom_mean_mass = avg_log_mass.array().exp().matrix();
       masses_ = std::vector<Eigen::VectorXd>(num_chains_, geom_mean_mass);
     }
+    // std::cout << "MASSES\n";
+    // for (std::size_t c = 0; c < num_chains_; ++c) {
+    //   std::cout << masses_[c].transpose() << "\n";
+    // }
+
     return *this;
   }
 
@@ -465,13 +474,28 @@ class InitConfigBuilder {
    * @tparam F Type of the log density and gradient function.
    * @param[in] rng The base random number generator.
    * @param[in] logp_grad The log density and gradient function.
+   * @param[in] avg_steps Set to `true` to use geometric average of found step sizes.
    */
   template <std::uniform_random_bit_generator RNG, LogpGrad F>
-  InitConfig adapt_step_build(RNG& rng, const F& logp_grad) {
+  InitConfig adapt_step_build(RNG& rng, const F& logp_grad, bool avg_steps = true) {
     for (std::size_t c = 0; c < num_chains_; ++c) {
       step_sizes_[c] = detail::adapt_step(rng, logp_grad, positions_[c],
                                           masses_[c], step_sizes_[c], dims_);
     }
+    if (avg_steps) {
+      double sum_log_steps = 0;
+      for (std::size_t c = 0; c < num_chains_; ++c) {
+	sum_log_steps += std::log(step_sizes_[c]);
+      }
+      double geom_mean_step_size = std::exp(sum_log_steps / num_chains_);
+      for (std::size_t c = 0; c < num_chains_; ++c) {
+	step_sizes_[c] = geom_mean_step_size;
+      }      
+    }
+    // for (std::size_t c = 0; c < num_chains_; ++c) {
+    // std::cout << c << " step size = " << step_sizes_[c] << "\n";
+    // }
+    
     return build();
   }
 

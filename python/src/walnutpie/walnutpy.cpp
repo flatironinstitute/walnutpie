@@ -69,6 +69,7 @@ void run_sampler(const walnutpie::LogpGrad auto& logp, int num_params,
     }
     init_cfg_builder.masses(mass_inits);
   } else {
+    
     init_cfg_builder.masses(logp, mass_additive_smoothing);
   }
 

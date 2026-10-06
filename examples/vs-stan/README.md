@@ -56,12 +56,17 @@ shadowing the virtual environment; remove it, or run `python -m pip` against the
 venv's interpreter by absolute path. To get past an early bug,
 **walnutpie must be 0.0.4 or newer.** 
 
-## Running against local Walnutpie
+## Using the local Walnutpie
  
-To test changes to walnutpie itself rather than the released package, install it
-from this checkout instead of from PyPI, following
-[walnutpie's installation page](https://flatironinstitute.github.io/walnutpie/latest/install.html)
-— that path needs CMake and the `thirdparty/bridgestan` submodule.
+To test versus the local version of Walnutpie versus the released
+version,
+install it to be editable.
+
+
+```sh
+pip install -e ".[stan]" --force-reinstall --no-deps \
+  --config-settings=cmake.define.WALNUTPIE_NATIVE=ON
+```
 
 ## Running
 
