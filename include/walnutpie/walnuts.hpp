@@ -4,12 +4,12 @@
 #include <cstdlib>
 #include <functional>
 #include <limits>
-#include <optional>
 #include <random>
 #include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include <Eigen/Dense>
 
@@ -34,63 +34,82 @@ namespace walnutpie::detail {
 class SpanW {
  public:
   /**
-   * @brief Construct a span of one state given the specified
-   * position, momentum, gradient, and log density.
+   * @brief Initialize this span in place to the span of one state with the
+   * specified position, momentum, gradient, and log densities.
    *
-   * @param[in] theta The position.
-   * @param[in] rho The momentum.
-   * @param[in] grad_theta The gradient of the log density at `theta`.
+   * The argument vectors are swapped into this span, so if this span's
+   * vectors are already sized for the state (see `resize()`), no heap
+   * allocation is required and the arguments are left holding sized
+   * storage.
+   *
+   * @param[in,out] theta The position.
+   * @param[in,out] rho The momentum.
+   * @param[in,out] grad_theta The gradient of the log density at `theta`.
    * @param[in] logp_pos The log density of the position.
    * @param[in] logp_joint The joint log density of the position and momentum.
-   * @return The span constructed from the initial point.
    */
-  static SpanW from_initial_point(Eigen::VectorXd&& theta,
-                                  Eigen::VectorXd&& rho,
-                                  Eigen::VectorXd&& grad_theta, double logp_pos,
-                                  double logp_joint) {
-    return {theta,
-            rho,
-            grad_theta,
-            logp_joint,
-            theta,
-            std::move(rho),
-            grad_theta,
-            logp_joint,
-            std::move(theta),
-            std::move(grad_theta),
-            logp_pos,
-            logp_joint};
+  void init_from(Eigen::VectorXd&& theta, Eigen::VectorXd&& rho,
+                 Eigen::VectorXd&& grad_theta, double logp_pos,
+                 double logp_joint) {
+    theta_bk_ = theta;
+    theta_fw_ = theta_bk_;
+    theta_select_.swap(theta);
+    rho_bk_ = rho;
+    rho_fw_.swap(rho);
+    grad_theta_bk_ = grad_theta;
+    grad_theta_fw_ = grad_theta_bk_;
+    grad_select_.swap(grad_theta);
+    logp_bk_ = logp_joint;
+    logp_fw_ = logp_joint;
+    logp_pos_select_ = logp_pos;
+    logp_ = logp_joint;
   }
 
   /**
-   * @brief Construct a span by concatenating the two specified spans
-   * with the given state selected and total log density.
+   * @brief Initialize this span in place by concatenating the two specified
+   * spans, with the given state selected and total log density.
    *
-   * @param[in] span1 The earlier span by temporal ordering.
-   * @param[in] span2 The later span by temporal ordering.
-   * @param[in] theta_select The selected position.
-   * @param[in] grad_select The gradient of the target log density at the
-   * selected position.
+   * This span must not be one of the specified spans. As with
+   * `init_from()`, the vectors are swapped in place.
+   *
+   * @param[in,out] span1 The earlier span by temporal ordering.
+   * @param[in,out] span2 The later span by temporal ordering.
+   * @param[in,out] selected The span holding the selected position, which
+   * may be `span1` or `span2`.
    * @param[in] logp_pos_select The log density of the selected position.
    * @param[in] logp_joint_total The log of the sum of the joint densities of
    * positions and momentums on the trajectory.
    */
-  static SpanW from_subspans(SpanW&& span1, SpanW&& span2,
-                             Eigen::VectorXd&& theta_select,
-                             Eigen::VectorXd&& grad_select,
-                             double logp_pos_select, double logp_joint_total) {
-    return {std::move(span1.theta_bk_),
-            std::move(span1.rho_bk_),
-            std::move(span1.grad_theta_bk_),
-            span1.logp_bk_,
-            std::move(span2.theta_fw_),
-            std::move(span2.rho_fw_),
-            std::move(span2.grad_theta_fw_),
-            span2.logp_fw_,
-            std::move(theta_select),
-            std::move(grad_select),
-            logp_pos_select,
-            logp_joint_total};
+  void init_from_subspans(SpanW& span1, SpanW& span2, SpanW& selected,
+                          double logp_pos_select, double logp_joint_total) {
+    theta_bk_.swap(span1.theta_bk_);
+    rho_bk_.swap(span1.rho_bk_);
+    grad_theta_bk_.swap(span1.grad_theta_bk_);
+    logp_bk_ = span1.logp_bk_;
+    theta_fw_.swap(span2.theta_fw_);
+    rho_fw_.swap(span2.rho_fw_);
+    grad_theta_fw_.swap(span2.grad_theta_fw_);
+    logp_fw_ = span2.logp_fw_;
+    theta_select_.swap(selected.theta_select_);
+    grad_select_.swap(selected.grad_select_);
+    logp_pos_select_ = logp_pos_select;
+    logp_ = logp_joint_total;
+  }
+
+  /**
+   * @brief Resize all the vectors of this span to hold `dim` values.
+   *
+   * @param[in] dim The number of values in each vector.
+   */
+  void resize(Eigen::Index dim) {
+    theta_bk_.resize(dim);
+    rho_bk_.resize(dim);
+    grad_theta_bk_.resize(dim);
+    theta_fw_.resize(dim);
+    rho_fw_.resize(dim);
+    grad_theta_fw_.resize(dim);
+    theta_select_.resize(dim);
+    grad_select_.resize(dim);
   }
 
   /** The earliest state. */
@@ -128,6 +147,91 @@ class SpanW {
 
   /** The log of the sum of the joint densities in the trajectory. */
   double logp_;
+};
+
+/**
+ * @brief Preallocated storage for building one Hamiltonian trajectory.
+ *
+ * Building a trajectory out of freshly allocated spans costs a heap
+ * allocation per vector per leaf, which dominates the arithmetic of a
+ * leapfrog step. A workspace instead holds two span slots per tree
+ * level, two for the accumulated trajectory, and the trial vectors for
+ * leaf construction and the checks, which never overlap. Vectors are
+ * swapped between the equally sized slots, so a transition does not
+ * allocate on the heap. Each chain requires its own workspace.
+ */
+class SpanWorkspace {
+ public:
+  /**
+   * @brief Construct a workspace for positions of the specified
+   * dimensionality and trajectories of up to the specified number of
+   * doublings.
+   *
+   * @param[in] dim The dimensionality of the positions.
+   * @param[in] max_depth The maximum number of trajectory doublings.
+   */
+  SpanWorkspace(Eigen::Index dim, std::size_t max_depth)
+      : spans_(2 * (max_depth + 1) + 2) {
+    for (auto& span : spans_) {
+      span.resize(dim);
+    }
+    theta_next_.resize(dim);
+    rho_next_.resize(dim);
+    grad_next_.resize(dim);
+    rev_theta_.resize(dim);
+    rev_rho_.resize(dim);
+    rev_grad_.resize(dim);
+    scaled_diff_.resize(dim);
+  }
+
+  /**
+   * @brief Return one of the two span slots for the halves of the
+   * subtree built at the specified tree level.
+   *
+   * @param[in] level The tree level, from zero.
+   * @param[in] slot The index of the slot within the level, zero or one.
+   * @return The span slot for the level and slot.
+   */
+  SpanW& span(std::size_t level, std::size_t slot) {
+    return spans_.at(2 * level + slot);
+  }
+
+  /**
+   * @brief Return one of the two span slots holding the trajectory
+   * accumulated so far.
+   *
+   * @param[in] i The index of the accumulator slot, zero or one.
+   * @return The accumulator span slot.
+   */
+  SpanW& accumulator(std::size_t i) { return spans_.at(spans_.size() - 2 + i); }
+
+  /** The trial position for the macro step building a leaf. */
+  Eigen::VectorXd theta_next_;
+
+  /**
+   * The trial momentum for the macro step building a leaf; also holds
+   * the initial momentum drawn at the start of a transition.
+   */
+  Eigen::VectorXd rho_next_;
+
+  /** The trial gradient for the macro step building a leaf. */
+  Eigen::VectorXd grad_next_;
+
+  /** The trial position for the reversibility check. */
+  Eigen::VectorXd rev_theta_;
+
+  /** The trial momentum for the reversibility check. */
+  Eigen::VectorXd rev_rho_;
+
+  /** The trial gradient for the reversibility check. */
+  Eigen::VectorXd rev_grad_;
+
+  /** The scaled difference between span ends for the U-turn check. */
+  Eigen::VectorXd scaled_diff_;
+
+ private:
+  /** The span slots: two per tree level, then the two accumulators. */
+  std::vector<SpanW> spans_;
 };
 
 /**
@@ -187,15 +291,17 @@ static std::tuple<T&, T&> order_forward_backward(T&& x1, T&& x2) {
  * @param[in] span1 The first argument span.
  * @param[in] span2 The second argument span.
  * @param[in] inv_mass The inverse mass matrix to determine distances.
+ * @param[out] scaled_diff Storage for the scaled difference between the
+ * span ends, sized for the positions.
  * @return `true` if there is a U-turn between the ends of the ordered spans.
  */
 template <Direction D>
 static bool uturn(const SpanW& span1, const SpanW& span2,
-                  const Eigen::VectorXd& inv_mass) {
+                  const Eigen::VectorXd& inv_mass,
+                  Eigen::VectorXd& scaled_diff) {
   auto [span_bk, span_fw] = order_forward_backward<D>(span1, span2);
-  auto scaled_diff =
-      (inv_mass.array() * (span_fw.theta_fw_ - span_bk.theta_bk_).array())
-          .matrix();
+  scaled_diff =
+      inv_mass.array() * (span_fw.theta_fw_ - span_bk.theta_bk_).array();
   return span_fw.rho_fw_.dot(scaled_diff) < 0 ||
          span_bk.rho_bk_.dot(scaled_diff) < 0;
 }
@@ -249,6 +355,9 @@ static bool within_tolerance(const F& logp_grad,
  * @param[in] theta The final position from which to reverse.
  * @param[in] rho The final momentum from which to reverse.
  * @param[in] grad The final gradient from which to reverse.
+ * @param[out] theta_next Storage for the trial position, sized for `theta`.
+ * @param[out] rho_next Storage for the trial momentum, sized for `theta`.
+ * @param[out] grad_next Storage for the trial gradient, sized for `theta`.
  * @return `true` if the path ending in the specified state is reversible.
  */
 template <LogpGrad F>
@@ -256,14 +365,12 @@ static bool reversible(const F& logp_grad, const Eigen::VectorXd& inv_mass,
                        double step, std::size_t num_steps,
                        std::size_t min_micro_steps, double max_error,
                        double logp_next, const Eigen::VectorXd& theta,
-                       const Eigen::VectorXd& rho,
-                       const Eigen::VectorXd& grad) {
+                       const Eigen::VectorXd& rho, const Eigen::VectorXd& grad,
+                       Eigen::VectorXd& theta_next, Eigen::VectorXd& rho_next,
+                       Eigen::VectorXd& grad_next) {
   if (num_steps == 1) {
     return true;
   }
-  Eigen::VectorXd theta_next(theta.size());  // declare here to allocate once
-  Eigen::VectorXd rho_next(theta.size());
-  Eigen::VectorXd grad_next(theta.size());
   while (num_steps >= 2 * min_micro_steps) {
     theta_next = theta;
     rho_next = -rho;
@@ -301,6 +408,8 @@ static bool reversible(const F& logp_grad, const Eigen::VectorXd& inv_mass,
  * the macro step.
  * @param[out] logp_next The log density of the position and momentum after the
  * macro step.
+ * @param[in,out] workspace The workspace holding the trial vectors for
+ * the reversibility check.
  * @param[in,out] adapt_handler The step-size adaptation handler.
  * @return `true` if the Hamiltonian is conserved reversibly.
  */
@@ -311,7 +420,7 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
                        const SpanW& span, Eigen::VectorXd& theta_next,
                        Eigen::VectorXd& rho_next, Eigen::VectorXd& grad_next,
                        double& logp_pos_next, double& logp_next,
-                       A& adapt_handler) {
+                       SpanWorkspace& workspace, A& adapt_handler) {
   constexpr bool is_forward = (D == Direction::Forward);
   const Eigen::VectorXd& theta = is_forward ? span.theta_fw_ : span.theta_bk_;
   const Eigen::VectorXd& rho = is_forward ? span.rho_fw_ : span.rho_bk_;
@@ -339,14 +448,16 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
     }
     if (std::fabs(logp - logp_next) <= max_error) {
       return reversible(logp_grad, inv_mass, step, num_steps, min_micro_steps,
-                        max_error, logp_next, theta_next, rho_next, grad_next);
+                        max_error, logp_next, theta_next, rho_next, grad_next,
+                        workspace.rev_theta_, workspace.rev_rho_,
+                        workspace.rev_grad_);
     }
   }
   return false;
 }
 
 /**
- * @brief Return the specified spans combined into a new span and update
+ * @brief Combine the specified spans into the output span and update
  * the selected position.
  *
  * If the direction `D` is `Forward`, then `span_new` is ordered after
@@ -361,13 +472,14 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
  * @tparam D The direction of combination in time (`Forward` or `Backward`).
  * @tparam Rand The type for the source of randomness.
  * @param[in,out] rng The random number generator used to select a new position.
- * @param[in] span_old The old span.
- * @param[in] span_new The span continuing the old span forward or backward in
- * time.
- * @return The combined span.
+ * @param[in,out] span_old The old span.
+ * @param[in,out] span_new The span continuing the old span forward or backward
+ * in time.
+ * @param[out] out The combined span; must not alias the arguments.
  */
 template <Update U, Direction D, std::uniform_random_bit_generator RNG>
-inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
+inline void combine(Random<RNG>& rng, SpanW& span_old, SpanW& span_new,
+                    SpanW& out) {
   double logp_total = log_sum_exp(span_old.logp_, span_new.logp_);
   double log_denominator;
   if constexpr (U == Update::Metropolis) {
@@ -377,14 +489,12 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
   }
   double update_logprob = span_new.logp_ - log_denominator;
   bool update = std::log(rng.uniform_real_01()) < update_logprob;
-  auto& selected = update ? span_new.theta_select_ : span_old.theta_select_;
-  auto& grad_selected = update ? span_new.grad_select_ : span_old.grad_select_;
+  SpanW& selected = update ? span_new : span_old;
   double logp_pos_select =
       update ? span_new.logp_pos_select_ : span_old.logp_pos_select_;
   auto&& [span_bk, span_fw] = order_forward_backward<D>(span_old, span_new);
-  return SpanW::from_subspans(std::move(span_bk), std::move(span_fw),
-                              std::move(selected), std::move(grad_selected),
-                              logp_pos_select, logp_total);
+  out.init_from_subspans(span_bk, span_fw, selected, logp_pos_select,
+                         logp_total);
 }
 
 /**
@@ -401,9 +511,6 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
  * within the specified error. The mass matrix and macro step size
  * are passed on to the leapfrog algorithm.
  *
- * The result is `std::optional` and will be `std::nullopt` only if the
- * specified span could not be extended reversibly within the error threshold.
- *
  * @tparam D The direction in time to extend.
  * @tparam F The type of the log density/gradient function.
  * @tparam A The type of the adaptation handler.
@@ -414,37 +521,37 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
  * @param[in] max_step_halvings The maximum number of halvings of the step size.
  * @param[in] min_micro_steps The minimum number of micro steps per macro step.
  * @param[in] max_error The maximum error allowed in the Hamiltonian.
+ * @param[in,out] workspace The storage holding the preallocated vectors.
  * @param[in,out] adapt_handler The step-size adaptation handler.
- * @return The span resulting from extending the specified span or
- * `std::nullopt` if that could not be done reversibly within threshold.
+ * @param[out] out The span resulting from extending the specified span.
+ * @return `true` if the span could be extended reversibly within threshold.
  */
 template <Direction D, LogpGrad F, StepSizeAdapter A>
-static std::optional<SpanW> build_leaf(const F& logp_grad, const SpanW& span,
-                                       const Eigen::VectorXd& inv_mass,
-                                       double step,
-                                       std::size_t max_step_halvings,
-                                       std::size_t min_micro_steps,
-                                       double max_error, A& adapt_handler) {
-  Eigen::VectorXd theta_next;
-  Eigen::VectorXd rho_next;
-  Eigen::VectorXd grad_theta_next;
+static bool build_leaf(const F& logp_grad, const SpanW& span,
+                       const Eigen::VectorXd& inv_mass, double step,
+                       std::size_t max_step_halvings,
+                       std::size_t min_micro_steps, double max_error,
+                       SpanWorkspace& workspace, A& adapt_handler, SpanW& out) {
+  Eigen::VectorXd& theta_next = workspace.theta_next_;
+  Eigen::VectorXd& rho_next = workspace.rho_next_;
+  Eigen::VectorXd& grad_theta_next = workspace.grad_next_;
   // values are dummies; will be reset by macro step
   double logp_pos_next = -std::numeric_limits<double>::infinity();
   double logp_next = -std::numeric_limits<double>::infinity();
   if (!macro_step<D>(logp_grad, inv_mass, step, max_step_halvings,
                      min_micro_steps, max_error, span, theta_next, rho_next,
-                     grad_theta_next, logp_pos_next, logp_next,
+                     grad_theta_next, logp_pos_next, logp_next, workspace,
                      adapt_handler)) {
-    return std::nullopt;
+    return false;
   }
-  return SpanW::from_initial_point(std::move(theta_next), std::move(rho_next),
-                                   std::move(grad_theta_next), logp_pos_next,
-                                   logp_next);
+  out.init_from(std::move(theta_next), std::move(rho_next),
+                std::move(grad_theta_next), logp_pos_next, logp_next);
+  return true;
 }
 
 /**
- * @brief Return a span of two to the power of the depth states extending from
- * the specified span, returning `nullopt` if there is a U-turn at any point.
+ * @brief Build a span of two to the power of the depth states extending from
+ * the specified span into the output span.
  *
  * @tparam D The direction in time to extend.
  * @tparam F The type of the log density/gradient function.
@@ -459,40 +566,43 @@ static std::optional<SpanW> build_leaf(const F& logp_grad, const SpanW& span,
  * @param[in] min_micro_steps The minimum number of micro steps per macro step.
  * @param[in] max_error The maximum error allowed at macro steps.
  * @param[in] last_span The span to extend.
+ * @param[in,out] workspace The storage holding the span slots.
+ * @param[out] out The new span; must not alias the workspace slots used by
+ * the two halves of this level.
+ * @param[in] level The workspace level holding the two halves, from one.
  * @param[in,out] adapt_handler The step-size adaptation handler.
- * @return The new span or `std::nullopt` if it could not be constructed.
+ * @return `true` if the span could be constructed.
  */
 template <Direction D, LogpGrad F, std::uniform_random_bit_generator RNG,
           StepSizeAdapter A>
-static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
-                                       const Eigen::VectorXd& inv_mass,
-                                       double step, std::size_t depth,
-                                       std::size_t max_step_halvings,
-                                       std::size_t min_micro_steps,
-                                       double max_error, const SpanW& last_span,
-                                       A& adapt_handler) {
+static bool build_span(Random<RNG>& rng, const F& logp_grad,
+                       const Eigen::VectorXd& inv_mass, double step,
+                       std::size_t depth, std::size_t max_step_halvings,
+                       std::size_t min_micro_steps, double max_error,
+                       const SpanW& last_span, SpanWorkspace& workspace,
+                       SpanW& out, std::size_t level, A& adapt_handler) {
   if (depth == 0) {
     return build_leaf<D>(logp_grad, last_span, inv_mass, step,
                          max_step_halvings, min_micro_steps, max_error,
-                         adapt_handler);
+                         workspace, adapt_handler, out);
   }
-  auto maybe_subspan1 = build_span<D>(rng, logp_grad, inv_mass, step, depth - 1,
-                                      max_step_halvings, min_micro_steps,
-                                      max_error, last_span, adapt_handler);
-  if (!maybe_subspan1) {
-    return std::nullopt;
+  SpanW& half1 = workspace.span(level, 0);
+  SpanW& half2 = workspace.span(level, 1);
+  if (!build_span<D>(rng, logp_grad, inv_mass, step, depth - 1,
+                     max_step_halvings, min_micro_steps, max_error, last_span,
+                     workspace, half1, level + 1, adapt_handler)) {
+    return false;
   }
-  auto maybe_subspan2 = build_span<D>(
-      rng, logp_grad, inv_mass, step, depth - 1, max_step_halvings,
-      min_micro_steps, max_error, *maybe_subspan1, adapt_handler);
-  if (!maybe_subspan2) {
-    return std::nullopt;
+  if (!build_span<D>(rng, logp_grad, inv_mass, step, depth - 1,
+                     max_step_halvings, min_micro_steps, max_error, half1,
+                     workspace, half2, level + 1, adapt_handler)) {
+    return false;
   }
-  if (uturn<D>(*maybe_subspan1, *maybe_subspan2, inv_mass)) {
-    return std::nullopt;
+  if (uturn<D>(half1, half2, inv_mass, workspace.scaled_diff_)) {
+    return false;
   }
-  return std::make_optional(combine<Update::Barker, D>(
-      rng, std::move(*maybe_subspan1), std::move(*maybe_subspan2)));
+  combine<Update::Barker, D>(rng, half1, half2, out);
+  return true;
 }
 
 /**
@@ -518,6 +628,8 @@ static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
  * input; the gradient at the selected state on output.
  * @param[in,out] logp_pos_select The log density of `theta` on input; the
  * log density of the selected position on output.
+ * @param[in,out] workspace The workspace for building the trajectory,
+ * constructed for the dimensionality of `theta` and `max_depth` doublings.
  * @param[in,out] step_size_adapter The step-size adaptation handler.
  * @return The next position in the Markov chain.
  */
@@ -528,26 +640,33 @@ inline Eigen::VectorXd transition_w(
     std::size_t max_step_halvings, std::size_t min_micro_steps,
     double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
     Eigen::VectorXd& theta_grad, double& logp_pos_select,
-    A& step_size_adapter) {
-  auto z = rand.standard_normal(chol_mass.size());
-  Eigen::VectorXd rho = (chol_mass.array() * z.array()).matrix();
+    SpanWorkspace& workspace, A& step_size_adapter) {
+  Eigen::Index dim = chol_mass.size();
+  Eigen::VectorXd& rho = workspace.rho_next_;
+  rand.standard_normal(dim, rho);
+  rho.array() *= chol_mass.array();
   double logp_joint = logp_pos_select + logp_momentum(rho, inv_mass);
-  auto span_accum = SpanW::from_initial_point(std::move(theta), std::move(rho),
-                                              std::move(theta_grad),
-                                              logp_pos_select, logp_joint);
+  std::size_t accum = 0;
+  workspace.accumulator(accum).init_from(std::move(theta), std::move(rho),
+                                         std::move(theta_grad), logp_pos_select,
+                                         logp_joint);
   depth = 0;
   while (depth < max_depth) {
     auto expand_in_direction = [&](auto direction) -> bool {
       constexpr Direction D = direction;
-      auto maybe_next_span = build_span<D>(
-          rand, logp_grad, inv_mass, step, depth, max_step_halvings,
-          min_micro_steps, max_error, span_accum, step_size_adapter);
-      if (!maybe_next_span) {
+      SpanW& span_accum = workspace.accumulator(accum);
+      SpanW& next_span = workspace.span(0, 0);
+      if (!build_span<D>(rand, logp_grad, inv_mass, step, depth,
+                         max_step_halvings, min_micro_steps, max_error,
+                         span_accum, workspace, next_span, 1,
+                         step_size_adapter)) {
         return true;
       }
-      bool combined_uturn = uturn<D>(span_accum, *maybe_next_span, inv_mass);
-      span_accum = combine<Update::Metropolis, D>(rand, std::move(span_accum),
-                                                  std::move(*maybe_next_span));
+      bool combined_uturn =
+          uturn<D>(span_accum, next_span, inv_mass, workspace.scaled_diff_);
+      SpanW& combined = workspace.accumulator(1 - accum);
+      combine<Update::Metropolis, D>(rand, span_accum, next_span, combined);
+      accum = 1 - accum;
       ++depth;
       return combined_uturn;
     };
@@ -560,9 +679,11 @@ inline Eigen::VectorXd transition_w(
       break;
     }
   }
-  theta_grad = span_accum.grad_select_;
+  SpanW& span_accum = workspace.accumulator(accum);
+  theta.swap(span_accum.theta_select_);
+  theta_grad.swap(span_accum.grad_select_);
   logp_pos_select = span_accum.logp_pos_select_;
-  return std::move(span_accum.theta_select_);
+  return std::move(theta);
 }
 
 /**
@@ -645,6 +766,7 @@ class WalnutsSampler {
       : rand_(rng),
         sample_handler_(sample_handler),
         logp_grad_(logp_grad, sample_handler),
+        workspace_(theta.size(), max_nuts_depth),
         theta_(theta),
         inv_mass_(inv_mass),
         cholesky_mass_(inv_mass.array().sqrt().inverse().matrix()),
@@ -685,10 +807,11 @@ class WalnutsSampler {
    */
   double operator()() {
     std::size_t depth;
-    theta_ = transition_w(rand_, logp_grad_, inv_mass_, cholesky_mass_,
-                          macro_time_, max_nuts_depth_, max_step_halvings_,
-                          min_micro_steps_, max_error_, std::move(theta_),
-                          depth, grad_, logp_, no_op_step_size_adapter_);
+    theta_ =
+        transition_w(rand_, logp_grad_, inv_mass_, cholesky_mass_, macro_time_,
+                     max_nuts_depth_, max_step_halvings_, min_micro_steps_,
+                     max_error_, std::move(theta_), depth, grad_, logp_,
+                     workspace_, no_op_step_size_adapter_);
     sample_handler_.get().on_sample(theta_, logp_);
     return logp_;
   }
@@ -738,6 +861,9 @@ class WalnutsSampler {
 
   /** The target log density/gradient function. */
   const detail::NoExceptLogpGrad<F, H> logp_grad_;
+
+  /** The preallocated storage for trajectory construction. */
+  detail::SpanWorkspace workspace_;
 
   /** The current position. */
   Eigen::VectorXd theta_;

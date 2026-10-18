@@ -208,6 +208,8 @@ class AdaptiveWalnuts {
         rand_(rng),
         handler_(handler),
         logp_grad_(logp_grad, handler),
+        workspace_(init_chain_cfg.position().size(),
+                   sampling_cfg.max_trajectory_doublings()),
         theta_(init_chain_cfg.position()),
         iteration_(0),
         adam_(init_chain_cfg.step_size(), warmup_cfg.step_accept_rate_target(),
@@ -240,7 +242,7 @@ class AdaptiveWalnuts {
                      sampling_cfg_.max_step_halvings(),
                      min_micro_estimator_.min_micro_steps(),
                      sampling_cfg_.max_hamiltonian_error(), std::move(theta_),
-                     depth, grad_, logp_, adam_);
+                     depth, grad_, logp_, workspace_, adam_);
     mass_estimator_.observe(theta_, grad_, iteration_);
     min_micro_estimator_.observe(1 << depth);
     handler_.get().on_warmup(theta_, logp_, step_size(), inv_mass);
@@ -338,6 +340,9 @@ class AdaptiveWalnuts {
 
   /** The target log density/gradient function. */
   const detail::NoExceptLogpGrad<F, H> logp_grad_;
+
+  /** The preallocated storage for trajectory construction. */
+  detail::SpanWorkspace workspace_;
 
   /** The current state. */
   Eigen::VectorXd theta_;
