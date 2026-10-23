@@ -366,12 +366,13 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
       rho_next += half_step * grad_next;
     }
     logp_next = logp_pos_next + logp_momentum(rho_next, inv_mass);
+    double err = logp_next - logp;
     if (num_steps == min_micro_steps) {
-      double min_accept = std::exp(-std::fabs(logp - logp_next));
+      double accept = std::exp(err);
       // Treat invalid energy changes as rejection for step-size adaptation.
-      adapt_handler(std::isfinite(min_accept) ? min_accept : 0.0);
+      adapt_handler(std::isfinite(accept) ? accept : 0.0);
     }
-    if (std::fabs(logp - logp_next) <= max_error) {
+    if (err <= max_error) {
       return reversible(logp_grad, inv_mass, step, num_steps, min_micro_steps,
                         max_error, logp_next, theta_next, rho_next, grad_next);
     }
@@ -562,9 +563,14 @@ inline Eigen::VectorXd transition_w(
     std::size_t max_step_halvings, std::size_t min_micro_steps,
     double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
     Eigen::VectorXd& theta_grad, double& logp_pos_select,
-    A& step_size_adapter) {
+    A& step_size_adapter, std::size_t iteration = -1) {
+  std::size_t max_depth_in = max_depth;
   auto z = rand.standard_normal(chol_mass.size());
   Eigen::VectorXd rho = (chol_mass.array() * z.array()).matrix();
+  if (iteration >= 0 && iteration < 30) {
+    rho *= iteration / 30.0;
+    max_depth = std::min<std::size_t>(max_depth_in, int(2 + iteration / 30.0));
+  }
   double logp_joint = logp_pos_select + logp_momentum(rho, inv_mass);
   auto span_accum = SpanW::from_initial_point(std::move(theta), std::move(rho),
                                               std::move(theta_grad),

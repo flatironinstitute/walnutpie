@@ -82,14 +82,15 @@ class MassEstimator {
     // 	  ? 2.0
     // 	  : 3.0 );
 
-    double discount_factor = 1 - 1 / (warmup_cfg_.mass_init_count()
-        			      + static_cast<double>(iteration));
+    // double discount_factor = 1 - 1 / (warmup_cfg_.mass_init_count()
+    // + static_cast<double>(iteration));
 
-    // with this, mass init count not doing anything 
+    // the following scheme ignores mass_init_count(); discount_factor really (1 - discount)
+    double discount_factor = 1.0;
     if (iteration < 10) {
-      discount_factor = 0.6;
-    } else if (iteration < 20) {
       discount_factor = 0.7;
+    } else if (iteration < 20) {
+      discount_factor = 0.75;
     } else if (iteration < 50) {
       discount_factor = 0.8;
     } else if (iteration < 100) {
@@ -97,8 +98,6 @@ class MassEstimator {
     } else if (iteration < 200) {
       discount_factor = 0.95;
     }
-    
-    
     draw_var_estimator_.discount_observe(discount_factor, theta);
     score_var_estimator_.discount_observe(discount_factor, grad);
   }
@@ -263,7 +262,7 @@ class AdaptiveWalnuts {
                      sampling_cfg_.max_step_halvings(),
                      min_micro_estimator_.min_micro_steps(),
                      sampling_cfg_.max_hamiltonian_error(), std::move(theta_),
-                     depth, grad_, logp_, adam_);
+                     depth, grad_, logp_, adam_, iteration_);
     mass_estimator_.observe(theta_, grad_, iteration_);
     min_micro_estimator_.observe(1 << depth);
     handler_.get().on_warmup(theta_, logp_, step_size(), inv_mass);
