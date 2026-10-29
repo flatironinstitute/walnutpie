@@ -1,7 +1,8 @@
-# Model from Eric Potash, 2026
-# For brms version, see:  https://github.com/potash/spectroscopy-lmm
-# Downloaded from: https://discourse.mc-stan.org/t/open-data-and-brms-code-for-soil-carbon-spectroscopy-prediction/41667/8
-
+/**
+ * Model from Eric Potash, 2026
+ * For brms version, see:  https://github.com/potash/spectroscopy-lmm
+ * Downloaded from: https://discourse.mc-stan.org/t/open-data-and-brms-code-for-soil-carbon-spectroscopy-prediction/41667/8
+ */
 data {
   int I; // number of observations
   vector[I] y; // outcomes

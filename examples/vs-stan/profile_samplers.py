@@ -27,8 +27,8 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 class RunConfig:
     seed: int = 456654
     num_chains: int = 16
-    iter_warmup: int = 800
-    iter_sampling: int = 800
+    iter_warmup: int = 400
+    iter_sampling: int = 400
     max_tree_depth: int = 10  # Walnutpie doublings: 5 Walnutpie, 10 Good
     init_radius: float = 0.1
     top_params: int = 5  # rows printed in per-fit summary
@@ -65,7 +65,7 @@ NUTPIE_ARGS = dict(
 STAN_ARGS = dict()
 
 MODELS = [
-    ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json", 
+    ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), 
 
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
