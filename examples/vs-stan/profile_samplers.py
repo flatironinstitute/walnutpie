@@ -25,10 +25,10 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
 @dataclass(frozen=True)
 class RunConfig:
-    seed: int = 456654
+    seed: int = 838646
     num_chains: int = 16
-    iter_warmup: int = 400
-    iter_sampling: int = 400
+    iter_warmup: int = 2000
+    iter_sampling: int = 4000
     max_tree_depth: int = 10  # Walnutpie doublings: 5 Walnutpie, 10 Good
     init_radius: float = 0.1
     top_params: int = 5  # rows printed in per-fit summary
@@ -47,11 +47,11 @@ WALNUTPIE_ARGS = dict(
     max_hamiltonian_error=1e10,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
     mass_init_count=4.0,  # XXXX 4.0 Walnutpie, 1.01 Good
     rhat_converge_tol=1.01,  # 1.01 Walnutpie
-    step_accept_rate_target=0.8,  # 0.8 Walnutpie, 0.9 Good
-    step_learning_rate=0.025,  # 0.001 Adam default, 0.05 Walnutpie, 0.05 Good
+    step_accept_rate_target=0.9,  # 0.8 Walnutpie, 0.9 Good
+    step_learning_rate=0.05,  #0.001 Adam default, 0.05 Walnutpie, 0.05 Good
     step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
     step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
-    step_stabilization=1e-7,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
+    step_stabilization=0.0001,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
     step_learn_rate_decay=0.5,  # 0.5 Walnutpie, 0.5 Good
     # init_inv_metric=np.ones(model.param_unc_num()),
 )
@@ -65,8 +65,6 @@ NUTPIE_ARGS = dict(
 STAN_ARGS = dict()
 
 MODELS = [
-    ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), 
-
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
 
@@ -141,6 +139,8 @@ MODELS = [
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
 
     ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
+
+    ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), # slow
 ]
 
 DISABLED_MODELS = {

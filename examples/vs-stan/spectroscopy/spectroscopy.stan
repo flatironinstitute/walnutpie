@@ -31,7 +31,7 @@ transformed data {
   int sum_M_n = sum(M_n); 
 }
 parameters {
-  real alpha1; // intercept
+  // real alpha1; // intercept
   vector[K] alpha_raw; // slopes
   
   real<lower=0> sigma_alpha; // slope hyperprior
@@ -79,10 +79,10 @@ model {
 
     pos = pos + M_n[n];
   }
-  y ~ normal(alpha1 + intercepts + rows_dot_product(X, slopes) + Z*gamma1 + XZ*gamma, sigma);
+  y ~ normal(intercepts + rows_dot_product(X, slopes) + Z*gamma1 + XZ*gamma, sigma);
   
   // priors
-  alpha1 ~ normal(0, 2.5);
+  // alpha1 ~ normal(0, 2.5);
   alpha_raw ~ std_normal();
   sigma ~ exponential(1);
   gamma1 ~ std_normal();
@@ -113,6 +113,7 @@ generated quantities {
     
       pos = pos + M_n[n];
     }
-    y_pred = normal_rng(alpha1 + intercepts_pred + rows_dot_product(X_pred, slopes_pred) + Z_pred*gamma1 + XZ_pred*gamma, sigma);
+    y_pred = normal_rng(// alpha1 +
+			intercepts_pred + rows_dot_product(X_pred, slopes_pred) + Z_pred*gamma1 + XZ_pred*gamma, sigma);
   }
 }
