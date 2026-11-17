@@ -90,7 +90,7 @@ class MassEstimator {
     if (iteration < 10) {
       discount_factor = 0.7;
     } else if (iteration < 20) {
-      discount_factor = 0.75;
+      discount_factor = 0.7;
     } else if (iteration < 50) {
       discount_factor = 0.8;
     } else if (iteration < 100) {
@@ -114,8 +114,8 @@ class MassEstimator {
 	     / score_var_estimator_.variance().array())
       .sqrt()
       .matrix()
-      .cwiseMax(1e-20)
-      .cwiseMin(1e20);
+      .cwiseMax(1e-10)
+      .cwiseMin(1e10);
   }
 
  private:
@@ -198,7 +198,12 @@ namespace walnutpie {
  * The adaptive Walnuts sampler is configured in the constructor, then
  * provides a functor method `operator()()` for returning the next
  * state in warmup. Warmup re-estimates step size and mass matrix
- * each iteration, exponentially discounting the past.
+ * each iteration, exponentially discounting the past. The first
+ * `greedy_iterations_` warmup transitions run without Metropolis
+ * corrections to move quickly toward the typical set (see
+ * `detail::transition_w()`); later ones are target-invariant so that the
+ * step size and mass matrix are tuned to the target rather than to the
+ * greedy kernel's stationary distribution.
  *
  * @tparam F Type of log density/gradient function.
  * @tparam RNG Type of base random number generator.
@@ -247,8 +252,9 @@ class AdaptiveWalnuts {
    * @brief Generate the next state for adaptation and the handler.
    *
    * This method should be called a number of time equal to the number
-   * of warmup iterations desired. These warmup draws are *not* drawn
-   * from a Markov chain and are not valid for inference. After
+   * of warmup iterations desired. These warmup draws are *not* from a
+   * homogeneous, target-invariant Markov chain and are not valid for
+   * inference. After
    * warmup, call `sampler()` to return a sampler that fixes the
    * tuning parameters and provides a proper Markov chain.
    */
@@ -262,7 +268,8 @@ class AdaptiveWalnuts {
                      sampling_cfg_.max_step_halvings(),
                      min_micro_estimator_.min_micro_steps(),
                      sampling_cfg_.max_hamiltonian_error(), std::move(theta_),
-                     depth, grad_, logp_, adam_, iteration_);
+                     depth, grad_, logp_, adam_, iteration_,
+                     /* metropolis = */ iteration_ >= greedy_iterations_);
     mass_estimator_.observe(theta_, grad_, iteration_);
     min_micro_estimator_.observe(1 << depth);
     handler_.get().on_warmup(theta_, logp_, step_size(), inv_mass);
@@ -286,7 +293,7 @@ class AdaptiveWalnuts {
         step_size(), sampling_cfg_.max_trajectory_doublings(),
         sampling_cfg_.max_step_halvings(),
         min_micro_estimator_.min_micro_steps(),
-        sampling_cfg_.max_hamiltonian_error());
+        sampling_cfg_.max_hamiltonian_error(), /* metropolis = */ true);
   }
 
   /**
@@ -372,6 +379,13 @@ class AdaptiveWalnuts {
 
   /** The current iteration. */
   std::size_t iteration_;
+
+  /**
+   * The number of initial warmup iterations run without Metropolis
+   * corrections; matches the momentum-annealing period in
+   * `detail::transition_w()`.
+   */
+  static constexpr std::size_t greedy_iterations_ = 50;
 
   /** The Adam optimizer for step size adaptation.
    */

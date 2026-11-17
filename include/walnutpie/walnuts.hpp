@@ -235,8 +235,82 @@ static bool uturn(const SpanW& span1, const SpanW& span2,
 
 
 /**
+ * @brief Return `true` if the change in joint log density over a macro step
+ * is acceptable.
+ *
+ * With `symmetric`, `err = log p(end) - log p(start)` passes iff
+ * `|err| <= max_error`; this is required when step-size selection must be
+ * reversible, because reversing a step negates `err`.  Without it, the
+ * test is one-sided and passes iff `err >= -max_error`, so gains in log
+ * density are never penalized (warmup only).  Non-finite `err` fails.
+ *
+ * @param[in] err The change in joint log density.
+ * @param[in] max_error The maximum allowed error.
+ * @param[in] symmetric `true` for the two-sided test.
+ * @return `true` if `err` is within tolerance.
+ */
+inline bool within_error(double err, double max_error,
+                         bool symmetric) noexcept {
+  return std::isfinite(err)
+         && (symmetric ? std::abs(err) <= max_error : err >= -max_error);
+}
+
+/**
+ * @brief Accumulator for the step-size adaptation statistic of a single
+ * trajectory.
+ *
+ * Observes joint log densities of states on a trajectory and reports
+ * their mean acceptance probability `min(1, p(state) / p(initial))`
+ * relative to the trajectory's initial state, as in Stan and Nutpie.
+ * Non-finite ratios count as zero acceptance.
+ */
+class AcceptStat {
+ public:
+  /**
+   * @brief Construct an accumulator relative to the specified initial
+   * joint log density.
+   *
+   * @param[in] logp0 The joint log density of the initial state.
+   */
+  explicit AcceptStat(double logp0) noexcept : logp0_(logp0) {}
+
+  /**
+   * @brief Observe a state's joint log density.
+   *
+   * @param[in] logp The joint log density.
+   */
+  void observe(double logp) noexcept {
+    double accept = std::exp(logp - logp0_);
+    sum_ += std::isfinite(accept) ? std::fmin(1.0, accept) : 0.0;
+    ++count_;
+  }
+
+  /**
+   * @brief Pass the mean acceptance probability to the specified adapter
+   * if any states were observed.
+   *
+   * @tparam A The type of the step-size adapter.
+   * @param[in,out] adapter The step-size adapter.
+   */
+  template <StepSizeAdapter A>
+  void flush(A& adapter) const {
+    if (count_ > 0) {
+      adapter(sum_ / static_cast<double>(count_));
+    }
+  }
+
+ private:
+  double logp0_;
+  double sum_ = 0.0;
+  std::size_t count_ = 0;
+};
+
+/**
  * @brief Return `true` if running the specified number of leapfrog steps
  * is within the maximum error tolerance.
+ *
+ * Only used for reversibility checks, so the test is symmetric (see
+ * `within_error()`).
  *
  * @tparam F The type of the log density/gradient function.
  * @param[in] logp_grad The log density/gradient function.
@@ -265,7 +339,7 @@ static bool within_tolerance(const F& logp_grad,
     rho_next += half_step * grad_next;
   }
   logp_next += logp_momentum(rho_next, inv_mass);
-  return std::abs(logp_next - logp) <= max_error;  // only tests one way
+  return within_error(logp_next - logp, max_error, true);
 }
 
 /**
@@ -314,12 +388,14 @@ static bool reversible(const F& logp_grad, const Eigen::VectorXd& inv_mass,
 
 /**
  * @brief Take a macro step from the specified state given the log
- * density/gradient, tuning parameters and adaptation handler and
+ * density/gradient, tuning parameters and adaptation statistic and
  * return whether it conserves the Hamiltonian and is reversible.
+ *
+ * The joint log density at the end of the first (coarsest) attempt is
+ * passed to `accept_stat`.
  *
  * @tparam D The time direction of Hamiltonian simulation.
  * @tparam F The type of the log density/gradient function.
- * @tparam A The type of the adaptation handler.
  * @param[in] logp_grad The target log density/gradient function.
  * @param[in] inv_mass The diagonal of the diagonal inverse mass matrix.
  * @param[in] step The initial micro step size.
@@ -335,17 +411,22 @@ static bool reversible(const F& logp_grad, const Eigen::VectorXd& inv_mass,
  * the macro step.
  * @param[out] logp_next The log density of the position and momentum after the
  * macro step.
- * @param[in,out] adapt_handler The step-size adaptation handler.
- * @return `true` if the Hamiltonian is conserved reversibly.
+ * @param[in,out] accept_stat The step-size adaptation statistic.
+ * @param[in] metropolis If `true`, enforce reversibility of the step-size
+ * selection with the symmetric error test (required for detailed
+ * balance); if `false`, accept the coarsest step size satisfying the
+ * one-sided error test without checking reversibility.
+ * @return `true` if the Hamiltonian is conserved (reversibly if
+ * `metropolis`).
  */
-template <Direction D, LogpGrad F, StepSizeAdapter A>
+template <Direction D, LogpGrad F>
 static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
                        double step, std::size_t max_step_halvings,
                        std::size_t min_micro_steps, double max_error,
                        const SpanW& span, Eigen::VectorXd& theta_next,
                        Eigen::VectorXd& rho_next, Eigen::VectorXd& grad_next,
                        double& logp_pos_next, double& logp_next,
-                       A& adapt_handler) {
+                       AcceptStat& accept_stat, bool metropolis = true) {
   constexpr bool is_forward = (D == Direction::Forward);
   const Eigen::VectorXd& theta = is_forward ? span.theta_fw_ : span.theta_bk_;
   const Eigen::VectorXd& rho = is_forward ? span.rho_fw_ : span.rho_bk_;
@@ -366,18 +447,42 @@ static bool macro_step(const F& logp_grad, const Eigen::VectorXd& inv_mass,
       rho_next += half_step * grad_next;
     }
     logp_next = logp_pos_next + logp_momentum(rho_next, inv_mass);
-    double err = logp_next - logp;
     if (num_steps == min_micro_steps) {
-      double accept = std::exp(err);
-      // Treat invalid energy changes as rejection for step-size adaptation.
-      adapt_handler(std::isfinite(accept) ? accept : 0.0);
+      accept_stat.observe(logp_next);
     }
-    if (err <= max_error) {
-      return reversible(logp_grad, inv_mass, step, num_steps, min_micro_steps,
-                        max_error, logp_next, theta_next, rho_next, grad_next);
+    if (within_error(logp_next - logp, max_error, metropolis)) {
+      return !metropolis
+             || reversible(logp_grad, inv_mass, step, num_steps,
+                           min_micro_steps, max_error, logp_next, theta_next,
+                           rho_next, grad_next);
     }
   }
   return false;
+}
+
+/**
+ * @brief Return the specified spans combined into a new span, taking the
+ * selected state from `span_new` if `update` is `true` and from `span_old`
+ * otherwise.
+ *
+ * @tparam D The direction of combination in time (`Forward` or `Backward`).
+ * @param[in] span_old The old span.
+ * @param[in] span_new The span continuing the old span in direction `D`.
+ * @param[in] update `true` if the selected state is taken from `span_new`.
+ * @param[in] logp_total The log of the sum of joint densities of both spans.
+ * @return The combined span.
+ */
+template <Direction D>
+inline SpanW combine_select(SpanW&& span_old, SpanW&& span_new, bool update,
+                            double logp_total) {
+  auto& selected = update ? span_new.theta_select_ : span_old.theta_select_;
+  auto& grad_selected = update ? span_new.grad_select_ : span_old.grad_select_;
+  double logp_pos_select =
+      update ? span_new.logp_pos_select_ : span_old.logp_pos_select_;
+  auto&& [span_bk, span_fw] = order_forward_backward<D>(span_old, span_new);
+  return SpanW::from_subspans(std::move(span_bk), std::move(span_fw),
+                              std::move(selected), std::move(grad_selected),
+                              logp_pos_select, logp_total);
 }
 
 /**
@@ -412,14 +517,8 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
   }
   double update_logprob = span_new.logp_ - log_denominator;
   bool update = std::log(rng.uniform_real_01()) < update_logprob;
-  auto& selected = update ? span_new.theta_select_ : span_old.theta_select_;
-  auto& grad_selected = update ? span_new.grad_select_ : span_old.grad_select_;
-  double logp_pos_select =
-      update ? span_new.logp_pos_select_ : span_old.logp_pos_select_;
-  auto&& [span_bk, span_fw] = order_forward_backward<D>(span_old, span_new);
-  return SpanW::from_subspans(std::move(span_bk), std::move(span_fw),
-                              std::move(selected), std::move(grad_selected),
-                              logp_pos_select, logp_total);
+  return combine_select<D>(std::move(span_old), std::move(span_new), update,
+                           logp_total);
 }
 
 /**
@@ -429,8 +528,7 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
  * of a single state. If `D` is `Forward`, the leaf extends the specified span
  * forward in time; if `Backward`, it extends the span backward in time.
  *
- * The step-size adaptation handler is called with the acceptance of each
- * macro step attempt.
+ * The adaptation statistic observes the first attempt of the macro step.
  *
  * The step size is reduced so that the Hamiltonian is conserved
  * within the specified error. The mass matrix and macro step size
@@ -441,7 +539,6 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
  *
  * @tparam D The direction in time to extend.
  * @tparam F The type of the log density/gradient function.
- * @tparam A The type of the adaptation handler.
  * @param[in] logp_grad The log density/gradient function.
  * @param[in] span The span to extend.
  * @param[in] inv_mass The diagonal of the diagonal inverse mass matrix.
@@ -449,17 +546,21 @@ inline SpanW combine(Random<RNG>& rng, SpanW&& span_old, SpanW&& span_new) {
  * @param[in] max_step_halvings The maximum number of halvings of the step size.
  * @param[in] min_micro_steps The minimum number of micro steps per macro step.
  * @param[in] max_error The maximum error allowed in the Hamiltonian.
- * @param[in,out] adapt_handler The step-size adaptation handler.
+ * @param[in,out] accept_stat The step-size adaptation statistic.
+ * @param[in] metropolis If `true`, enforce reversibility of step-size
+ * selection (see `macro_step()`).
  * @return The span resulting from extending the specified span or
  * `std::nullopt` if that could not be done reversibly within threshold.
  */
-template <Direction D, LogpGrad F, StepSizeAdapter A>
+template <Direction D, LogpGrad F>
 static std::optional<SpanW> build_leaf(const F& logp_grad, const SpanW& span,
                                        const Eigen::VectorXd& inv_mass,
                                        double step,
                                        std::size_t max_step_halvings,
                                        std::size_t min_micro_steps,
-                                       double max_error, A& adapt_handler) {
+                                       double max_error,
+                                       AcceptStat& accept_stat,
+                                       bool metropolis = true) {
   Eigen::VectorXd theta_next;
   Eigen::VectorXd rho_next;
   Eigen::VectorXd grad_theta_next;
@@ -469,7 +570,7 @@ static std::optional<SpanW> build_leaf(const F& logp_grad, const SpanW& span,
   if (!macro_step<D>(logp_grad, inv_mass, step, max_step_halvings,
                      min_micro_steps, max_error, span, theta_next, rho_next,
                      grad_theta_next, logp_pos_next, logp_next,
-                     adapt_handler)) {
+                     accept_stat, metropolis)) {
     return std::nullopt;
   }
   return SpanW::from_initial_point(std::move(theta_next), std::move(rho_next),
@@ -484,7 +585,6 @@ static std::optional<SpanW> build_leaf(const F& logp_grad, const SpanW& span,
  * @tparam D The direction in time to extend.
  * @tparam F The type of the log density/gradient function.
  * @tparam Rand The type for the source of randomness.
- * @tparam A The type of the step-size adaptation callback function.
  * @param[in,out] rng The random number generator.
  * @param[in] logp_grad The log density/gradient function.
  * @param[in] inv_mass The diagonal of the diagonal inverse mass matrix.
@@ -494,32 +594,34 @@ static std::optional<SpanW> build_leaf(const F& logp_grad, const SpanW& span,
  * @param[in] min_micro_steps The minimum number of micro steps per macro step.
  * @param[in] max_error The maximum error allowed at macro steps.
  * @param[in] last_span The span to extend.
- * @param[in,out] adapt_handler The step-size adaptation handler.
+ * @param[in,out] accept_stat The step-size adaptation statistic.
+ * @param[in] metropolis If `true`, enforce reversibility of step-size
+ * selection (see `macro_step()`).
  * @return The new span or `std::nullopt` if it could not be constructed.
  */
-template <Direction D, LogpGrad F, std::uniform_random_bit_generator RNG,
-          StepSizeAdapter A>
+template <Direction D, LogpGrad F, std::uniform_random_bit_generator RNG>
 static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
                                        const Eigen::VectorXd& inv_mass,
                                        double step, std::size_t depth,
                                        std::size_t max_step_halvings,
                                        std::size_t min_micro_steps,
                                        double max_error, const SpanW& last_span,
-                                       A& adapt_handler) {
+                                       AcceptStat& accept_stat,
+                                       bool metropolis = true) {
   if (depth == 0) {
     return build_leaf<D>(logp_grad, last_span, inv_mass, step,
                          max_step_halvings, min_micro_steps, max_error,
-                         adapt_handler);
+                         accept_stat, metropolis);
   }
-  auto maybe_subspan1 = build_span<D>(rng, logp_grad, inv_mass, step, depth - 1,
-                                      max_step_halvings, min_micro_steps,
-                                      max_error, last_span, adapt_handler);
+  auto maybe_subspan1 = build_span<D>(
+      rng, logp_grad, inv_mass, step, depth - 1, max_step_halvings,
+      min_micro_steps, max_error, last_span, accept_stat, metropolis);
   if (!maybe_subspan1) {
     return std::nullopt;
   }
   auto maybe_subspan2 = build_span<D>(
       rng, logp_grad, inv_mass, step, depth - 1, max_step_halvings,
-      min_micro_steps, max_error, *maybe_subspan1, adapt_handler);
+      min_micro_steps, max_error, *maybe_subspan1, accept_stat, metropolis);
   if (!maybe_subspan2) {
     return std::nullopt;
   }
@@ -553,8 +655,20 @@ static std::optional<SpanW> build_span(Random<RNG>& rng, const F& logp_grad,
  * input; the gradient at the selected state on output.
  * @param[in,out] logp_pos_select The log density of `theta` on input; the
  * log density of the selected position on output.
- * @param[in,out] step_size_adapter The step-size adaptation handler.
- * @return The next position in the Markov chain.
+ * @param[in,out] step_size_adapter The step-size adaptation handler, called
+ * once with the mean over the trajectory's macro steps of
+ * `min(1, p(state) / p(initial state))`.
+ * @param[in] iteration The warmup iteration, or `-1` (max `size_t`) if not
+ * in warmup.
+ * @param[in] metropolis If `true` (default), the transition preserves the
+ * target: step-size selection is checked for reversibility and each new
+ * doubling is selected with biased-progressive (Metropolis) probability.
+ * If `false`, the step-size error test is one-sided (log density may
+ * rise without bound), step-size reductions are accepted without a
+ * reversibility check, and the selection always jumps to the last doubling (chosen
+ * categorically within it).  The `false` setting does *not* define a valid
+ * MCMC transition and is intended only for warmup.
+ * @return The next position.
  */
 template <LogpGrad F, class Rand, StepSizeAdapter A>
 inline Eigen::VectorXd transition_w(
@@ -563,15 +677,15 @@ inline Eigen::VectorXd transition_w(
     std::size_t max_step_halvings, std::size_t min_micro_steps,
     double max_error, Eigen::VectorXd&& theta, std::size_t& depth,
     Eigen::VectorXd& theta_grad, double& logp_pos_select,
-    A& step_size_adapter, std::size_t iteration = -1) {
-  std::size_t max_depth_in = max_depth;
+    A& step_size_adapter, std::size_t iteration = -1, bool metropolis = true) {
   auto z = rand.standard_normal(chol_mass.size());
   Eigen::VectorXd rho = (chol_mass.array() * z.array()).matrix();
-  if (iteration >= 0 && iteration < 30) {
-    rho *= iteration / 30.0;
-    max_depth = std::min<std::size_t>(max_depth_in, int(2 + iteration / 30.0));
+  if (iteration < 50) {
+    rho *= iteration / 50.0;
+    max_depth = 1;
   }
   double logp_joint = logp_pos_select + logp_momentum(rho, inv_mass);
+  AcceptStat accept_stat(logp_joint);
   auto span_accum = SpanW::from_initial_point(std::move(theta), std::move(rho),
                                               std::move(theta_grad),
                                               logp_pos_select, logp_joint);
@@ -581,13 +695,20 @@ inline Eigen::VectorXd transition_w(
       constexpr Direction D = direction;
       auto maybe_next_span = build_span<D>(
           rand, logp_grad, inv_mass, step, depth, max_step_halvings,
-          min_micro_steps, max_error, span_accum, step_size_adapter);
+          min_micro_steps, max_error, span_accum, accept_stat, metropolis);
       if (!maybe_next_span) {
         return true;
       }
       bool combined_uturn = uturn<D>(span_accum, *maybe_next_span, inv_mass);
-      span_accum = combine<Update::Metropolis, D>(rand, std::move(span_accum),
-                                                  std::move(*maybe_next_span));
+      if (metropolis) {
+        span_accum = combine<Update::Metropolis, D>(
+            rand, std::move(span_accum), std::move(*maybe_next_span));
+      } else {
+        double logp_total = log_sum_exp(span_accum.logp_, maybe_next_span->logp_);
+        span_accum = combine_select<D>(std::move(span_accum),
+                                       std::move(*maybe_next_span), true,
+                                       logp_total);
+      }
       ++depth;
       return combined_uturn;
     };
@@ -600,6 +721,7 @@ inline Eigen::VectorXd transition_w(
       break;
     }
   }
+  accept_stat.flush(step_size_adapter);
   theta_grad = span_accum.grad_select_;
   logp_pos_select = span_accum.logp_pos_select_;
   return std::move(span_accum.theta_select_);
@@ -667,6 +789,9 @@ class WalnutsSampler {
    * step.
    * @param[in] max_error The log of the maximum error in joint densities
    * allowed in Hamiltonian trajectories.
+   * @param[in] metropolis If `true` (default), the sampler is a valid MCMC
+   * kernel; if `false`, it skips reversibility checks and always jumps to
+   * the last doubling, which is biased (see `detail::transition_w()`).
    * @throw std::invalid_argument If `inv_mass_matrix` has non-positive or
    * infinite entries.
    * @throw std::invalid_argument If `macro_time` is not positive or not
@@ -681,7 +806,7 @@ class WalnutsSampler {
                  const Eigen::VectorXd& theta, const Eigen::VectorXd& inv_mass,
                  double macro_time, std::size_t max_nuts_depth,
                  std::size_t max_step_halvings, std::size_t min_micro_steps,
-                 double max_error)
+                 double max_error, bool metropolis = true)
       : rand_(rng),
         sample_handler_(sample_handler),
         logp_grad_(logp_grad, sample_handler),
@@ -693,6 +818,7 @@ class WalnutsSampler {
         max_step_halvings_(max_step_halvings),
         min_micro_steps_(min_micro_steps),
         max_error_(max_error),
+        metropolis_(metropolis),
         no_op_step_size_adapter_() {
     detail::validate_positive(inv_mass, "inv_mass");
     detail::validate_positive(macro_time, "macro_time");
@@ -728,7 +854,8 @@ class WalnutsSampler {
     theta_ = transition_w(rand_, logp_grad_, inv_mass_, cholesky_mass_,
                           macro_time_, max_nuts_depth_, max_step_halvings_,
                           min_micro_steps_, max_error_, std::move(theta_),
-                          depth, grad_, logp_, no_op_step_size_adapter_);
+                          depth, grad_, logp_, no_op_step_size_adapter_,
+                          static_cast<std::size_t>(-1), metropolis_);
     sample_handler_.get().on_sample(theta_, logp_);
     return logp_;
   }
@@ -759,6 +886,13 @@ class WalnutsSampler {
    * @return The maximum error allowed among Hamiltonians.
    */
   double max_error() const noexcept { return max_error_; }
+
+  /**
+   * @brief Return `true` if the sampler enforces detailed balance.
+   *
+   * @return `true` if Metropolis/reversibility corrections are applied.
+   */
+  bool metropolis() const noexcept { return metropolis_; }
 
   /**
    * @brief Return the number of dimensions.
@@ -808,6 +942,9 @@ class WalnutsSampler {
 
   /** The max difference of Hamiltonians along a macro step. */
   const double max_error_;
+
+  /** Whether reversibility checks and Metropolis selection are applied. */
+  const bool metropolis_;
 
   /** A handler for adaptation which does nothing. */
   const detail::NoOpStepSizeAdapter no_op_step_size_adapter_;

@@ -26,9 +26,9 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 @dataclass(frozen=True)
 class RunConfig:
     seed: int = 838646
-    num_chains: int = 16
-    iter_warmup: int = 2000
-    iter_sampling: int = 4000
+    num_chains: int = 8
+    iter_warmup: int = 1000
+    iter_sampling: int = 1000
     max_tree_depth: int = 10  # Walnutpie doublings: 5 Walnutpie, 10 Good
     init_radius: float = 0.1
     top_params: int = 5  # rows printed in per-fit summary
@@ -45,7 +45,7 @@ WALNUTPIE_ARGS = dict(
     max_macro_steps_target=1024,  # XXXX 16.0 Walnutpie, 16 Good
     step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
     max_hamiltonian_error=1e10,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
-    mass_init_count=4.0,  # XXXX 4.0 Walnutpie, 1.01 Good
+    mass_init_count=2.0,  # XXXX 4.0 Walnutpie, 1.01 Good
     rhat_converge_tol=1.01,  # 1.01 Walnutpie
     step_accept_rate_target=0.9,  # 0.8 Walnutpie, 0.9 Good
     step_learning_rate=0.05,  #0.001 Adam default, 0.05 Walnutpie, 0.05 Good
@@ -111,8 +111,6 @@ MODELS = [
 
     ("election/election88_full.stan", "election/election88.json"),
 
-    ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slower
-
     ("diamonds/diamonds.stan", "diamonds/diamonds.json"),  # 2.4 MB data, slow
 
     ("irt/irt_2pl.stan", "irt/irt_2pl.json"),
@@ -139,6 +137,8 @@ MODELS = [
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
 
     ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
+
+    ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slower
 
     ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), # slow
 ]
@@ -564,7 +564,18 @@ def main():
         for sampler in ACTIVE_SAMPLERS:
             rows.append(run_one(sampler, pathlib.Path(stan_file), pathlib.Path(data_file)))
     print_table(rows)
-    print("")
+
+    print("\nRunConfig")
+    print(RunConfig())
+
+    print("\nACTIVE_SAMPLERS")
+    print(ACTIVE_SAMPLERS)
+
+    print("\nWALNUTPIE_ARGS")
+    print(WALNUTPIE_ARGS)
+
+    print("\nNUTPIE_ARGS")
+    print(NUTPIE_ARGS)
 
 
 if __name__ == "__main__":

@@ -361,7 +361,7 @@ class InitConfigBuilder {
    */
   template <LogpGrad F>
   InitConfigBuilder& masses(const F& logp_grad, double mass_smoothing,
-                            bool average_masses = true) {
+                            bool average_masses = false) {
     detail::validate_probability(mass_smoothing, "mass_smoothing");
     Eigen::VectorXd grad;
     masses_.resize(num_chains_);
@@ -369,7 +369,7 @@ class InitConfigBuilder {
       double lp_to_discard;
       logp_grad(positions_[c], lp_to_discard, grad);
       detail::soft_clip(grad, 1e10, 1e9);
-      masses_[c] = grad.cwiseAbs().cwiseMax(1e-20).cwiseMin(1e20); 
+      masses_[c] = grad.cwiseAbs().cwiseMax(1e-10).cwiseMin(1e10); 
       // masses_[c] = (1 - mass_smoothing) * grad.array().abs() + mass_smoothing;
     }
     if (average_masses) {
@@ -382,11 +382,6 @@ class InitConfigBuilder {
       auto geom_mean_mass = avg_log_mass.array().exp().matrix();
       masses_ = std::vector<Eigen::VectorXd>(num_chains_, geom_mean_mass);
     }
-    // std::cout << "MASSES\n";
-    // for (std::size_t c = 0; c < num_chains_; ++c) {
-    //   std::cout << masses_[c].transpose() << "\n";
-    // }
-
     return *this;
   }
 
