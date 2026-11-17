@@ -37,7 +37,7 @@ class RunConfig:
 
 RUN = RunConfig()
 
-ACTIVE_SAMPLERS = ["Walnutpie", "Nutpie"]  # also: "CmdStanPy"
+ACTIVE_SAMPLERS = ["Walnutpie"] # , "Nutpie"]  # also: "CmdStanPy"
 
 WALNUTPIE_ARGS = dict(
     max_step_halvings=1,  # 5 Walnutpie, 5 good, 1 is Nuts
@@ -47,7 +47,7 @@ WALNUTPIE_ARGS = dict(
     max_hamiltonian_error=1e10,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
     mass_init_count=2.0,  # XXXX 4.0 Walnutpie, 1.01 Good
     rhat_converge_tol=1.01,  # 1.01 Walnutpie
-    step_accept_rate_target=0.9,  # 0.8 Walnutpie, 0.9 Good
+    step_accept_rate_target=0.90,  # 0.8 Walnutpie, 0.9 Good
     step_learning_rate=0.05,  #0.001 Adam default, 0.05 Walnutpie, 0.05 Good
     step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
     step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
