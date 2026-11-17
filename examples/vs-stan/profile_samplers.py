@@ -26,7 +26,7 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 @dataclass(frozen=True)
 class RunConfig:
     seed: int = 838646
-    num_chains: int = 8
+    num_chains: int = 32
     iter_warmup: int = 1000
     iter_sampling: int = 1000
     max_tree_depth: int = 10  # Walnutpie doublings: 5 Walnutpie, 10 Good
@@ -65,6 +65,10 @@ NUTPIE_ARGS = dict(
 STAN_ARGS = dict()
 
 MODELS = [
+    ("rats/rats_model.stan", "rats/rats_data.json"),  # hard for Walnutpie
+
+    ("diamonds/diamonds.stan", "diamonds/diamonds.json"),  # 2.4 MB data, slow
+
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
 
@@ -96,8 +100,6 @@ MODELS = [
     ("seeds/seeds_centered_model.stan", "seeds/seeds_data.json"),
     ("seeds/seeds_stanified_model.stan", "seeds/seeds_data.json"),
 
-    ("rats/rats_model.stan", "rats/rats_data.json"),  # hard for Walnutpie
-
     ("prophet/prophet.stan", "prophet/rstan_downloads.json"),
 
     ("occupancy/multi_occupancy.stan", "occupancy/butterfly.json"),
@@ -108,10 +110,6 @@ MODELS = [
     ("lsat/lsat_model.stan", "lsat/lsat_data.json"),
 
     ("losscurve/losscurve_sislob.stan", "losscurve/loss_curves.json"),
-
-    ("election/election88_full.stan", "election/election88.json"),
-
-    ("diamonds/diamonds.stan", "diamonds/diamonds.json"),  # 2.4 MB data, slow
 
     ("irt/irt_2pl.stan", "irt/irt_2pl.json"),
 
@@ -141,6 +139,8 @@ MODELS = [
     ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slower
 
     ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), # slow
+
+    ("election/election88_full.stan", "election/election88.json"),  # slow
 ]
 
 DISABLED_MODELS = {

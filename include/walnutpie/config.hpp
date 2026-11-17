@@ -359,29 +359,63 @@ class InitConfigBuilder {
    * @throw std::invalid_argumet If the mass smoothing is not in (0, 1).
    * @return A reference to this builder for chaining.
    */
+  // template <LogpGrad F>
+  // InitConfigBuilder& masses(const F& logp_grad, double mass_smoothing,
+  //                           bool average_masses = false) {
+  //   detail::validate_probability(mass_smoothing, "mass_smoothing");
+  //   masses_.resize(num_chains_);
+  //   for (std::size_t c = 0; c < num_chains_; ++c) {
+  //     double lp_to_discard;
+  //     logp_grad(positions_[c], lp_to_discard, masses_[c]);
+  //     masses_[c] = masses_[c].cwiseAbs();
+  //     detail::soft_clip(masses_[c], 1e10, 1e9);
+  //     // masses_[c] = (1 - mass_smoothing) * grad.array().abs() + mass_smoothing;
+  //   }
+  //   if (average_masses) {
+  //     Eigen::Index D = masses_[0].size();
+  //     Eigen::VectorXd sum_log_mass = Eigen::VectorXd::Zero(D);
+  //     for (const auto& mass : masses_) {
+  //       sum_log_mass += mass.array().log().matrix();
+  //     }
+  //     auto avg_log_mass = sum_log_mass / num_chains_;
+  //     auto geom_mean_mass = avg_log_mass.array().exp().matrix();
+  //     masses_ = std::vector<Eigen::VectorXd>(num_chains_, geom_mean_mass);
+  //   }
+  //   return *this;
+  // }
+
   template <LogpGrad F>
   InitConfigBuilder& masses(const F& logp_grad, double mass_smoothing,
-                            bool average_masses = false) {
+                            bool average_masses = true) {
     detail::validate_probability(mass_smoothing, "mass_smoothing");
-    Eigen::VectorXd grad;
+    std::vector<Eigen::VectorXd> grad_masses(num_chains_);
+    std::vector<double> log_weights(num_chains_);
+    for (std::size_t c = 0; c < num_chains_; ++c) {
+      logp_grad(positions_[c], log_weights[c], grad_masses[c]);
+      grad_masses[c].array() = grad_masses[c].array().abs();
+      detail::soft_clip(grad_masses[c], 1e10, 1e9);
+    }
+    auto weights = detail::weights_from_log(log_weights);
+    std::discrete_distribution<std::size_t> resample(weights.begin(),
+                                                     weights.end());
+    std::mt19937_64 rng(20261117);  // TODO: plumb RNG through
+    std::vector<Eigen::VectorXd> positions(num_chains_);
     masses_.resize(num_chains_);
     for (std::size_t c = 0; c < num_chains_; ++c) {
-      double lp_to_discard;
-      logp_grad(positions_[c], lp_to_discard, grad);
-      detail::soft_clip(grad, 1e10, 1e9);
-      masses_[c] = grad.cwiseAbs().cwiseMax(1e-10).cwiseMin(1e10); 
-      // masses_[c] = (1 - mass_smoothing) * grad.array().abs() + mass_smoothing;
+      std::size_t k = resample(rng);
+      positions[c] = positions_[k];
+      masses_[c] = grad_masses[k];
     }
-    if (average_masses) {
-      Eigen::Index D = masses_[0].size();
-      Eigen::VectorXd sum_log_mass = Eigen::VectorXd::Zero(D);
-      for (const auto& mass : masses_) {
-        sum_log_mass += mass.array().log().matrix();
-      }
-      auto avg_log_mass = sum_log_mass / num_chains_;
-      auto geom_mean_mass = avg_log_mass.array().exp().matrix();
-      masses_ = std::vector<Eigen::VectorXd>(num_chains_, geom_mean_mass);
-    }
+    positions_ = std::move(positions);
+    // if (average_masses) {
+    //   Eigen::VectorXd sum_log_mass = Eigen::VectorXd::Zero(masses_[0].size());
+    //   for (const auto& mass : masses_) {
+    //     sum_log_mass += mass.array().log().matrix();
+    //   }
+    //   Eigen::VectorXd geom_mean_mass =
+    //       (sum_log_mass / static_cast<double>(num_chains_)).array().exp().matrix();
+    //   masses_ = std::vector<Eigen::VectorXd>(num_chains_, geom_mean_mass);
+    // }
     return *this;
   }
 

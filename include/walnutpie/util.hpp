@@ -229,7 +229,34 @@ inline void soft_clip(Eigen::VectorXd& grad, double clip_scale = 1e10, double cl
       || grad.cwiseAbs().minCoeff() < 1.0 / clip_threshold) {
     grad.array() = clip_scale * (grad.array() / clip_scale).asinh();
   }
-}  
+}
+
+/**
+ * @brief Return weights proportional to the exponentiated log weights,
+ * scaled so the maximum is 1. Non-finite log weights get weight 0.
+ *
+ * @param[in] log_weights The log weights.
+ * @return The weights.
+ * @throw std::domain_error If no log weight is finite.
+ */
+inline std::vector<double> weights_from_log(
+    const std::vector<double>& log_weights) {
+  double max_lw = -std::numeric_limits<double>::infinity();
+  for (double lw : log_weights) {
+    if (std::isfinite(lw) && lw > max_lw) {
+      max_lw = lw;
+    }
+  }
+  if (!std::isfinite(max_lw)) {
+    throw std::domain_error("no initial candidate has finite log density");
+  }
+  std::vector<double> weights(log_weights.size());
+  for (std::size_t k = 0; k < log_weights.size(); ++k) {
+    weights[k] = std::isfinite(log_weights[k])
+                     ? std::exp(log_weights[k] - max_lw) : 0.0;
+  }
+  return weights;
+}
 
 /**
  * @brief Return the difference in log density (negative Hamiltonian)
