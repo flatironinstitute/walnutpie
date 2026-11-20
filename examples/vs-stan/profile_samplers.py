@@ -25,19 +25,20 @@ cmdstanpy.utils.get_logger().setLevel(logging.ERROR)
 
 @dataclass(frozen=True)
 class RunConfig:
-    seed: int = 838646
-    num_chains: int = 32
-    iter_warmup: int = 1000
-    iter_sampling: int = 1000
+    seed: int = 142922 # 838646
+    num_chains: int = 4
+    iter_warmup: int = 400
+    iter_sampling: int = 400
     max_tree_depth: int = 10  # Walnutpie doublings: 5 Walnutpie, 10 Good
     init_radius: float = 0.1
     top_params: int = 5  # rows printed in per-fit summary
     metric_per_line: int = 100
+    adapt_delta: float = 0.9
 
 
 RUN = RunConfig()
 
-ACTIVE_SAMPLERS = ["Walnutpie"] # , "Nutpie"]  # also: "CmdStanPy"
+ACTIVE_SAMPLERS = ["Walnutpie", "Nutpie", "CmdStanPy"]
 
 WALNUTPIE_ARGS = dict(
     max_step_halvings=1,  # 5 Walnutpie, 5 good, 1 is Nuts
@@ -45,12 +46,12 @@ WALNUTPIE_ARGS = dict(
     max_macro_steps_target=1024,  # XXXX 16.0 Walnutpie, 16 Good
     step_size_init=0.1,  # 1.0 Walnutpie, 0.1 Good
     max_hamiltonian_error=1e10,  # XXXX # 0.5 Walnutpie, 0.5--1 Good, infty Nuts
-    mass_init_count=2.0,  # XXXX 4.0 Walnutpie, 1.01 Good
+    mass_init_count=2,  # XXXX 4.0 Walnutpie, 1.01 Good
     rhat_converge_tol=1.01,  # 1.01 Walnutpie
-    step_accept_rate_target=0.90,  # 0.8 Walnutpie, 0.9 Good
-    step_learning_rate=0.05,  #0.001 Adam default, 0.05 Walnutpie, 0.05 Good
-    step_gradient_decay=0.8,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
-    step_sq_gradient_decay=0.9,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
+    step_accept_rate_target=RUN.adapt_delta,  # 0.8 Walnutpie, 0.9 Good
+    step_learning_rate=0.1,  #0.001 Adam default, 0.05 Walnutpie, 0.05 Good
+    step_gradient_decay=0.5,  # 0.9 Adam, 0.8 Walnutpie, 0.8 Good
+    step_sq_gradient_decay=0.5,  # 0.999 Adam, 0.9 Walnutpie, 0.9 Good
     step_stabilization=0.0001,  # 1e-7 Adam, 0.0001 Walnutpie, 0.0001 Good
     step_learn_rate_decay=0.5,  # 0.5 Walnutpie, 0.5 Good
     # init_inv_metric=np.ones(model.param_unc_num()),
@@ -59,15 +60,13 @@ WALNUTPIE_ARGS = dict(
 NUTPIE_ARGS = dict(
     adaptation="diag",
     initial_step=0.1,
-    target_accept=0.8,
+    target_accept=0.9,
 )
 
 STAN_ARGS = dict()
 
 MODELS = [
     ("rats/rats_model.stan", "rats/rats_data.json"),  # hard for Walnutpie
-
-    ("diamonds/diamonds.stan", "diamonds/diamonds.json"),  # 2.4 MB data, slow
 
     ("normal/std-normal.stan", "normal/std-normal.json"),
     ("normal/ill-normal.stan", "normal/ill-normal.json"),
@@ -99,8 +98,6 @@ MODELS = [
     ("seeds/seeds_model.stan", "seeds/seeds_data.json"),
     ("seeds/seeds_centered_model.stan", "seeds/seeds_data.json"),
     ("seeds/seeds_stanified_model.stan", "seeds/seeds_data.json"),
-
-    ("prophet/prophet.stan", "prophet/rstan_downloads.json"),
 
     ("occupancy/multi_occupancy.stan", "occupancy/butterfly.json"),
 
@@ -134,13 +131,17 @@ MODELS = [
 
     ("hmm/hmm_example.stan", "hmm/hmm_example.json"),
 
+    ("diamonds/diamonds.stan", "diamonds/diamonds.json"),  # 2.4 MB data, slow
+
     ("gp/accel_gp.stan", "gp/mcycle_gp.json"),  # hard to fit
 
-    ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # nutpie much slower
+#    ("spatial/bym2_offset_only.stan", "spatial/traffic_accident_nyc.json"),  # slow
 
-    ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), # slow
+#    ("spectroscopy/spectroscopy.stan", "spectroscopy/spectroscopy.json"), # slow
 
-    ("election/election88_full.stan", "election/election88.json"),  # slow
+#    ("election/election88_full.stan", "election/election88.json"),  # slow
+
+#    ("prophet/prophet.stan", "prophet/rstan_downloads.json"),  # slow
 ]
 
 DISABLED_MODELS = {
@@ -370,6 +371,7 @@ def fit_stan(stan_file, data_file, run=RUN):
         iter_warmup=run.iter_warmup,
         iter_sampling=run.iter_sampling,
         seed=run.seed,
+        adapt_delta=run.adapt_delta,
         inits=run.init_radius,
         max_treedepth=run.max_tree_depth,
         show_progress=False,
